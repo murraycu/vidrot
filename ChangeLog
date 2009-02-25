@@ -1,3 +1,7 @@
+2009-02-25  David King  <davidk@openismus.com>
+
+	* autogen.sh: Add executable bit, as pointed out by Michael.
+
 2009-02-24  David King  <davidk@openismus.com>
 
 	* Initial commit.
