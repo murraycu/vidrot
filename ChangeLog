@@ -1,5 +1,12 @@
 2009-02-26  David King  <davidk@openismus.com>
 
+	* src/main_window.[cpp|h]:
+	* src/vidrot.cpp (main): Skeleton code to setup a Gst::Pipeline,
+	select a video file with a FileChooserButton, select a rotation
+	direction with a RadioButton and handle a Gst::Bus.
+
+2009-02-26  David King  <davidk@openismus.com>
+
 	* Makefile.am:
 	* README:
 	* configure.ac:

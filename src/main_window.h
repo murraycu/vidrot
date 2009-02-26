@@ -29,16 +29,31 @@
 class MainWindow : public Gtk::Window
 {
   public:
-    MainWindow();
+    MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline);
     virtual ~MainWindow();
 
   protected:
-    void on_button_quit();
+    // Signal handlers
     void on_file_selected();
+    void on_button_convert();
+    void on_button_quit();
+    bool on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::RefPtr<Gst::Message>& message);
 
+    // Widgets
     Gtk::VBox m_vbox;
     Gtk::FileChooserButton m_button_filechooser;
+    Gtk::RadioButtonGroup m_radiogroup;
+    Gtk::RadioButton m_radio_clockwise;
+    Gtk::RadioButton m_radio_anticlockwise;
+    Gtk::Button m_button_convert;
     Gtk::Button m_button_quit;
+
+    // Variables
+    Glib::RefPtr<Gst::Pipeline> m_pipeline;
+    Glib::RefPtr<Gst::Element> m_element_source;
+    Glib::RefPtr<Gst::Element> m_element_filter;
+    Glib::RefPtr<Gst::Element> m_element_sink;
+    guint m_watch_id;
 };
 
 #endif /* _MAINWINDOW_H */

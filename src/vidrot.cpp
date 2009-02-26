@@ -27,9 +27,21 @@ int main(int argc, char *argv[])
   Gtk::Main kit(argc, argv);
   Gst::init(argc, argv);
 
-  MainWindow main_window;
+  // Pipeline setup. Abort if pipeline could not be created.
+  Glib::RefPtr<Gst::Pipeline> pipeline = Gst::Pipeline::create("flippipe");
+
+  if(!pipeline)
+  {
+    std::cerr << "Pipeline could not be created." << std::endl;
+    return -1;
+  }
+
+  MainWindow main_window(pipeline);
 
   Gtk::Main::run(main_window);
+
+  // Clean up the pipeline.
+  pipeline->set_state(Gst::STATE_NULL);
 
   return 0;
 }
