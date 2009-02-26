@@ -16,25 +16,20 @@
  * along with VidRot. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <gst/gst.h>
+#include <gtkmm.h>
+#include <gstreamermm.h>
+#include <iostream>
 #include "config.h"
+#include "main_window.h"
 
-#define VIDROT_MAINWINDOW_UI "main_window_uimanager.ui"
-
-int main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-  GMainLoop *main_loop;
+  Gtk::Main kit(argc, argv);
+  Gst::init(argc, argv);
 
-  gst_init (&argc, &argv);
-  main_loop = g_main_loop_new (NULL, FALSE);
+  MainWindow main_window;
 
-  if (argc !=2)
-  {
-    g_print ("Incorrect number of arguments\n");
-    return 1;
-  }
-
-  g_main_loop_run (main_loop);
+  Gtk::Main::run(main_window);
 
   return 0;
 }

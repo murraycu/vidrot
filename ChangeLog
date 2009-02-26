@@ -1,3 +1,15 @@
+2009-02-26  David King  <davidk@openismus.com>
+
+	* Makefile.am:
+	* README:
+	* configure.ac:
+	* src/vidrot.cpp (main): Switch to Gtkmm/Gstreamermm.
+	* src/main_window.cpp (MainWindow.MainWindow, MainWindow.~MainWindow,
+	  MainWindow.on_button_quit):
+	* src/main_window.h (_MAINWINDOW_H, VIDROT_MAINWINDOW_UI, MainWindow,
+	  MainWindow.m_vbox, MainWindow.m_button_filechooser,
+	  MainWindow.m_button_quit): Implement basic main window.
+
 2009-02-25  David King  <davidk@openismus.com>
 
 	* autogen.sh: Add executable bit, as pointed out by Michael.

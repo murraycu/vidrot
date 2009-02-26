@@ -1,7 +1,7 @@
 # object files
 *.o
 # Compiled binaries
-src/wswe
+src/vidrot
 # Makefiles
 Makefile
 Makefile.in
@@ -15,3 +15,4 @@ aclocal.m4
 autom4te.cache
 build-aux
 stamp-h1
+*.swp
