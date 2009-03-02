@@ -21,6 +21,9 @@
 
 #include <gtkmm.h>
 #include <gstreamermm.h>
+#include <gstreamermm/filesrc.h>
+#include <gstreamermm/videoscale.h>
+#include <gstreamermm/filesink.h>
 #include <iostream>
 #include "config.h"
 
@@ -50,9 +53,9 @@ class MainWindow : public Gtk::Window
 
     // Variables
     Glib::RefPtr<Gst::Pipeline> m_pipeline;
-    Glib::RefPtr<Gst::Element> m_element_source;
-    Glib::RefPtr<Gst::Element> m_element_filter;
-    Glib::RefPtr<Gst::Element> m_element_sink;
+    Glib::RefPtr<Gst::FileSrc> m_element_source;
+    Glib::RefPtr<Gst::VideoScale> m_element_filter;
+    Glib::RefPtr<Gst::FileSink> m_element_sink;
     guint m_watch_id;
 };
 

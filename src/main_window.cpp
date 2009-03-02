@@ -25,17 +25,18 @@
 MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_vbox(false, 6),
   m_button_filechooser("Select a video to open", Gtk::FILE_CHOOSER_ACTION_OPEN),
-  m_radio_clockwise(m_radiogroup, "Rotate _clockwise", true),
-  m_radio_anticlockwise(m_radiogroup, "Rotate _anticlockwise", true),
+  m_radio_clockwise(m_radiogroup, "Rotate 90° _clockwise", true),
+  m_radio_anticlockwise(m_radiogroup, "Rotate 90° _anticlockwise", true),
   m_button_convert(Gtk::Stock::EXECUTE),
-  m_button_quit(Gtk::Stock::QUIT)
+  m_button_quit(Gtk::Stock::QUIT),
+  m_watch_id(0)
 {
   set_title(PACKAGE_STRING);
   set_border_width(12);
 
   // Filter videos for FileChooserButton.
   Gtk::FileFilter filter_video;
-  filter_video.set_name(("Video files"));
+  filter_video.set_name("Video files");
   filter_video.add_mime_type("video/*");
   m_button_filechooser.add_filter(filter_video);
   Gtk::FileFilter filter_any;
@@ -53,9 +54,9 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_watch_id = bus->add_watch(sigc::mem_fun(*this, &MainWindow::on_bus_message));
 
   // Create elements using ElementFactory.
-  m_element_source = Gst::ElementFactory::create_element("filesrc", "file-source");
-  m_element_filter = Gst::ElementFactory::create_element("identity", "identity-filter");
-  m_element_sink = Gst::ElementFactory::create_element("filesink", "file-sink");
+  m_element_source = Gst::FileSrc::create("file-source");
+  m_element_filter = Gst::VideoScale::create("filter-element");
+  m_element_sink = Gst::FileSink::create("file-sink");
 
   // Add elements to pipeline (before linking together).
   pipeline->add(m_element_source)->add(m_element_filter)->add(m_element_sink);
@@ -84,11 +85,15 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
 
 MainWindow::~MainWindow()
 {
+  m_pipeline->get_bus()->remove_watch(m_watch_id);
 }
 
 void MainWindow::on_file_selected()
 {
-  std::cout << "File " << m_button_filechooser.get_filename() << " selected" <<std::endl;
+  const std::string uri = m_button_filechooser.get_uri();
+  std::cout << "URI " << uri << " selected" <<std::endl;
+  m_element_source->set_uri(uri);
+  m_element_sink->set_uri(uri);
 }
 
 void MainWindow::on_button_convert()
@@ -117,8 +122,7 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
       Glib::RefPtr<Gst::MessageError> message_error = Glib::RefPtr<Gst::MessageError>::cast_dynamic(message);
       if(message_error)
       {
-        Glib::Error err;
-        err = message_error->parse();
+        Glib::Error err = message_error->parse();
         std::cerr << "Error: " << err.what() << std::endl;
       }
       else

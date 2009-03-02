@@ -1,3 +1,13 @@
+2009-03-02  David King  <davidk@openismus.com>
+
+	* src/main_window.cpp (MainWindow.MainWindow): Add m_watch_id to
+	constructior initialisation list. Create more specific pipeline
+	elements. Remove extra brackets from string.
+	  (MainWindow.~MainWindow): Remove watch from message bus.
+	  (MainWindow.on_file_selected): Print URI for FileSrc element.
+	  (MainWindow.on_bus_message): Tidy Glib::Error definition.
+	* src/main_window.h: More specific pipeline elements.
+
 2009-02-26  David King  <davidk@openismus.com>
 
 	* src/main_window.[cpp|h]:
