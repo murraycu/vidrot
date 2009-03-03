@@ -1,3 +1,11 @@
+2009-03-03  David King  <davidk@openismus.com>
+
+	* src/main_window.cpp: Include <config.h> not "config.h".
+	* src/main_window.h (MainWindow): Make constructor explicit. Make
+	member data private.
+	* src/vidrot.cpp (main): Return 1, not -1. Include <config.h> not
+	"config.h"
+
 2009-03-02  David King  <davidk@openismus.com>
 
 	* src/main_window.cpp (MainWindow.MainWindow): Add m_watch_id to
