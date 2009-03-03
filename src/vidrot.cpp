@@ -19,7 +19,7 @@
 #include <gtkmm.h>
 #include <gstreamermm.h>
 #include <iostream>
-#include "config.h"
+#include <config.h>
 #include "main_window.h"
 
 int main(int argc, char *argv[])
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
   if(!pipeline)
   {
     std::cerr << "Pipeline could not be created." << std::endl;
-    return -1;
+    return 1;
   }
 
   MainWindow main_window(pipeline);

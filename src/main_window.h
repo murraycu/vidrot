@@ -25,17 +25,17 @@
 #include <gstreamermm/videoscale.h>
 #include <gstreamermm/filesink.h>
 #include <iostream>
-#include "config.h"
+#include <config.h>
 
 #define VIDROT_MAINWINDOW_UI "main_window_uimanager.ui"
 
 class MainWindow : public Gtk::Window
 {
   public:
-    MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline);
+    explicit MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline);
     virtual ~MainWindow();
 
-  protected:
+  private:
     // Signal handlers
     void on_file_selected();
     void on_button_convert();

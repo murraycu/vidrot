@@ -19,8 +19,8 @@
 #include <gtkmm.h>
 #include <gstreamermm.h>
 #include <iostream>
+#include <config.h>
 #include "main_window.h"
-#include "config.h"
 
 MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_vbox(false, 6),
