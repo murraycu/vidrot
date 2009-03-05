@@ -55,7 +55,8 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
 
   // Create elements using ElementFactory.
   m_element_source = Gst::FileSrc::create("file-source");
-  m_element_filter = Gst::VideoScale::create("filter-element");
+  m_element_decode = Gst::ElementFactory::create_element("decodebin", "decode-element");
+  m_element_filter = Gst::ElementFactory::create_element("videoflip", "filter-element");
   m_element_sink = Gst::FileSink::create("file-sink");
 
   // Add elements to pipeline (before linking together).
@@ -64,7 +65,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   // Link elements together.
   try
   {
-    m_element_source->link(m_element_filter)->link(m_element_sink);
+    m_element_source->link(m_element_decode)->link(m_element_filter)->link(m_element_sink);
   }
   catch(const std::runtime_error& error)
   {
@@ -99,6 +100,7 @@ void MainWindow::on_file_selected()
 void MainWindow::on_button_convert()
 {
   std::cout << std::boolalpha << "Convert clicked with rotation clockwise " << m_radio_clockwise.get_active() << std::endl;
+  m_element_filter->set_property("method", m_radio_clockwise.get_active() ? GST_VIDEO_FLIP_METHOD_90R : GST_VIDEO_FLIP_METHOD_90L);
 }
 
 void MainWindow::on_button_quit()
