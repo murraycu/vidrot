@@ -1,3 +1,10 @@
+2009-03-05  David King  <davidk@openismus.com>
+
+	* src/main_window.h (MainWindow.m_element_decode,
+	  MainWindow.m_element_filter): Define Gst::ElementFactory types.
+	* src/main_window.cpp (MainWindow.MainWindow,
+	  MainWindow.on_button_convert): Setup videoflip filter.
+
 2009-03-03  David King  <davidk@openismus.com>
 
 	* src/main_window.cpp: Include <config.h> not "config.h".
