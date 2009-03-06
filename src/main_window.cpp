@@ -16,11 +16,11 @@
  * along with VidRot. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "main_window.h"
 #include <gtkmm.h>
 #include <gstreamermm.h>
 #include <iostream>
 #include <config.h>
-#include "main_window.h"
 
 MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_vbox(false, 6),
@@ -60,12 +60,14 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_element_sink = Gst::FileSink::create("file-sink");
 
   // Add elements to pipeline (before linking together).
-  pipeline->add(m_element_source)->add(m_element_filter)->add(m_element_sink);
+  pipeline->add(m_element_source)->add(m_element_decode)->add(m_element_filter)->add(m_element_sink);
 
-  // Link elements together.
+  // Must link decode to filter after stream has been identified.
   try
   {
-    m_element_source->link(m_element_decode)->link(m_element_filter)->link(m_element_sink);
+    m_element_source->link(m_element_decode);
+    m_element_decode->signal_pad_added().connect(sigc::mem_fun(*this, &MainWindow::on_decode_pad_added));
+    m_element_filter->link(m_element_sink);
   }
   catch(const std::runtime_error& error)
   {
@@ -94,13 +96,18 @@ void MainWindow::on_file_selected()
   const std::string uri = m_button_filechooser.get_uri();
   std::cout << "URI " << uri << " selected" <<std::endl;
   m_element_source->set_uri(uri);
-  m_element_sink->set_uri(uri);
+  // TODO: Write to same file.
+  m_element_sink->set_uri(uri + ".new");
 }
 
 void MainWindow::on_button_convert()
 {
-  std::cout << std::boolalpha << "Convert clicked with rotation clockwise " << m_radio_clockwise.get_active() << std::endl;
-  m_element_filter->set_property("method", m_radio_clockwise.get_active() ? GST_VIDEO_FLIP_METHOD_90R : GST_VIDEO_FLIP_METHOD_90L);
+  std::cout << std::boolalpha << "Convert clicked with rotation clockwise: " << m_radio_clockwise.get_active() << std::endl;
+  // Set videoflip method based on radio button state.
+  // TODO: Use enumeration.
+  m_element_filter->set_property("method", m_radio_clockwise.get_active() ? 1 : 3);
+  // TODO: Set UI to be insensitive while conversion taking place.
+  m_pipeline->set_state(Gst::STATE_PLAYING);
 }
 
 void MainWindow::on_button_quit()
@@ -118,6 +125,7 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
   {
     case Gst::MESSAGE_EOS:
       std::cout << "End of stream" << std::endl;
+      m_pipeline->set_state(Gst::STATE_NULL);
       break;
     case Gst::MESSAGE_ERROR:
       {
@@ -139,4 +147,20 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
   }
 
   return true;
+}
+
+void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
+{
+  // Acquire sink pad from videoflip element.
+  Glib::RefPtr<Gst::Pad> sink_pad = m_element_filter->get_static_pad("sink");
+
+  // Link decodebin source to videoflip sink.
+  try
+  {
+    new_pad->link(sink_pad);
+  }
+  catch(const std::runtime_error& err)
+  {
+    std::cerr << "Exception caught while linking: " << err.what() << std::endl;
+  }
 }
