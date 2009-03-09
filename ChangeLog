@@ -1,3 +1,23 @@
+2009-03-06  David King  <davidk@openismus.com>
+
+	* src/main_window.cpp: Include our own header before all others.
+	  (MainWindow.MainWindow): Partially link elements at MainWindow
+	construction, decoder can only be linked to filter element one the
+	media type is known.
+	  (MainWindow.on_button_convert): Set stream to PLAYING.
+	  (MainWindow.on_bus_message): Set stream to NULL at end of stream.
+	  (MainWindow.on_decode_pad_added): Link dynamic source pad on
+	  decodebin to static sink pad on filter element.
+	* src/main_window.h (MainWindow): Add on_decode_pad_added().
+	* src/vidrot.cpp: Include our own header before all others.
+
+2009-03-05  David King  <davidk@openismus.com>
+
+	* src/main_window.h (MainWindow.m_element_decode,
+	  MainWindow.m_element_filter): Define Gst::ElementFactory types.
+	* src/main_window.cpp (MainWindow.MainWindow,
+	  MainWindow.on_button_convert): Setup videoflip filter.
+
 2009-03-03  David King  <davidk@openismus.com>
 
 	* src/main_window.cpp: Include <config.h> not "config.h".

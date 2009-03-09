@@ -16,11 +16,11 @@
  * along with VidRot. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "main_window.h"
 #include <gtkmm.h>
 #include <gstreamermm.h>
 #include <iostream>
 #include <config.h>
-#include "main_window.h"
 
 int main(int argc, char *argv[])
 {
