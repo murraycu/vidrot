@@ -21,8 +21,11 @@
 
 #include <gtkmm.h>
 #include <gstreamermm.h>
+#include <gstreamermm/bin.h>
 #include <gstreamermm/filesrc.h>
 #include <gstreamermm/filesink.h>
+#include <gstreamermm/message.h>
+#include <gstreamermm/queue.h>
 #include <iostream>
 #include <config.h>
 
@@ -35,14 +38,14 @@ class MainWindow : public Gtk::Window
     virtual ~MainWindow();
 
   private:
-    // Signal handlers
+    // Signal handlers.
     void on_file_selected();
     void on_button_convert();
     void on_button_quit();
     bool on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::RefPtr<Gst::Message>& message);
     void on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad);
 
-    // Widgets
+    // Widgets.
     Gtk::VBox m_vbox;
     Gtk::FileChooserButton m_button_filechooser;
     Gtk::RadioButtonGroup m_radiogroup;
@@ -51,11 +54,17 @@ class MainWindow : public Gtk::Window
     Gtk::Button m_button_convert;
     Gtk::Button m_button_quit;
 
-    // Variables
+    // gstreamermm Variables.
     Glib::RefPtr<Gst::Pipeline> m_pipeline;
+    Glib::RefPtr<Gst::Bin> m_bin_video;
+    Glib::RefPtr<Gst::Bin> m_bin_audio;
+    Glib::RefPtr<Gst::Queue> m_queue_video;
+    Glib::RefPtr<Gst::Queue> m_queue_audio;
     Glib::RefPtr<Gst::FileSrc> m_element_source;
     Glib::RefPtr<Gst::Element> m_element_decode;
     Glib::RefPtr<Gst::Element> m_element_filter;
+    Glib::RefPtr<Gst::Element> m_element_vidcomp;
+    Glib::RefPtr<Gst::Element> m_element_mux;
     Glib::RefPtr<Gst::FileSink> m_element_sink;
     guint m_watch_id;
 };

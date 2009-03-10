@@ -1,3 +1,12 @@
+2009-03-10  David King  <davidk@openismus.com>
+
+	* src/main_window.cpp (MainWindow.MainWindow): Setup audio and video
+	bins. Still need to add ghost pads.
+	  (MainWindow.on_bus_message): Make UI sensitive at end of stream. Set
+	  UI insensitive during stream state change.
+	* src/main_window.h (MainWindow): Add bin and queue elements for audio
+	and video. Add muxer and mpeg encoder elements for video.
+
 2009-03-06  David King  <davidk@openismus.com>
 
 	* src/main_window.cpp: Include our own header before all others.

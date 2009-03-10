@@ -53,21 +53,37 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   Glib::RefPtr<Gst::Bus> bus = pipeline->get_bus();
   m_watch_id = bus->add_watch(sigc::mem_fun(*this, &MainWindow::on_bus_message));
 
+  // Create Bins for audio and video filtering.
+  m_bin_video = Gst::Bin::create("video-bin");
+  m_bin_audio = Gst::Bin::create("audio-bin");
+
+  // Create Queue elements.
+  m_queue_video = Gst::Queue::create("video-queue");
+  m_queue_audio = Gst::Queue::create("audio-queue");
+
   // Create elements using ElementFactory.
   m_element_source = Gst::FileSrc::create("file-source");
   m_element_decode = Gst::ElementFactory::create_element("decodebin", "decode-element");
   m_element_filter = Gst::ElementFactory::create_element("videoflip", "filter-element");
+  m_element_vidcomp = Gst::ElementFactory::create_element("mpeg2enc", "vidcomp-element");
+  m_element_mux = Gst::ElementFactory::create_element("avimux", "mux-element");
   m_element_sink = Gst::FileSink::create("file-sink");
 
   // Add elements to pipeline (before linking together).
-  pipeline->add(m_element_source)->add(m_element_decode)->add(m_element_filter)->add(m_element_sink);
+  pipeline->add(m_bin_video)->add(m_bin_audio)->add(m_element_source)->add(m_element_decode)->add(m_element_mux)->add(m_element_sink);
+  m_bin_video->add(m_queue_video)->add(m_element_filter)->add(m_element_vidcomp);
+  m_bin_audio->add(m_queue_audio);
 
   // Must link decode to filter after stream has been identified.
+  // TODO: Use ghost pads where necessary.
   try
   {
     m_element_source->link(m_element_decode);
     m_element_decode->signal_pad_added().connect(sigc::mem_fun(*this, &MainWindow::on_decode_pad_added));
-    m_element_filter->link(m_element_sink);
+    m_queue_video->link(m_element_filter)->link(m_element_vidcomp);
+    m_element_mux->link(m_element_sink);
+    //m_bin_video->link(m_element_mux);
+    m_bin_audio->link(m_element_mux);
   }
   catch(const std::runtime_error& error)
   {
@@ -93,8 +109,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_file_selected()
 {
+  // Set URI of filesrc and filesink elements.
   const std::string uri = m_button_filechooser.get_uri();
-  std::cout << "URI " << uri << " selected" <<std::endl;
   m_element_source->set_uri(uri);
   // TODO: Write to same file.
   m_element_sink->set_uri(uri + ".new");
@@ -102,18 +118,16 @@ void MainWindow::on_file_selected()
 
 void MainWindow::on_button_convert()
 {
-  std::cout << std::boolalpha << "Convert clicked with rotation clockwise: " << m_radio_clockwise.get_active() << std::endl;
   // Set videoflip method based on radio button state.
   // TODO: Use enumeration.
   m_element_filter->set_property("method", m_radio_clockwise.get_active() ? 1 : 3);
-  // TODO: Set UI to be insensitive while conversion taking place.
+
+  // Begin conversion process (play stream).
   m_pipeline->set_state(Gst::STATE_PLAYING);
 }
 
 void MainWindow::on_button_quit()
 {
-  std::cout << "Quit button clicked" << std::endl;
-
   this->hide();
 
   return;
@@ -124,25 +138,51 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
   switch(message->get_message_type())
   {
     case Gst::MESSAGE_EOS:
-      std::cout << "End of stream" << std::endl;
+      std::clog << "End of stream" << std::endl;
       m_pipeline->set_state(Gst::STATE_NULL);
+      m_button_filechooser.set_sensitive();
+      m_radio_clockwise.set_sensitive();
+      m_radio_anticlockwise.set_sensitive();
+      m_button_convert.set_sensitive();
+      m_button_quit.set_sensitive();
       break;
     case Gst::MESSAGE_ERROR:
       {
-      Glib::RefPtr<Gst::MessageError> message_error = Glib::RefPtr<Gst::MessageError>::cast_dynamic(message);
-      if(message_error)
-      {
-        Glib::Error err = message_error->parse();
-        std::cerr << "Error: " << err.what() << std::endl;
+        Glib::RefPtr<Gst::MessageError> message_error = Glib::RefPtr<Gst::MessageError>::cast_dynamic(message);
+        if(message_error)
+        {
+          Glib::Error err = message_error->parse();
+          std::cerr << "Error: " << err.what() << std::endl;
+        }
+        else
+        {
+          std::cerr << "Undefined error." << std::endl;
+        }
+        break;
       }
-      else
+    case Gst::MESSAGE_STATE_CHANGED:
       {
-        std::cerr << "Undefined error." << std::endl;
-      }
-      break;
+        // Set UI to be insensitive during conversion.
+        Glib::RefPtr<Gst::MessageStateChanged> message_statechange = Glib::RefPtr<Gst::MessageStateChanged>::cast_dynamic(message);
+        if(message_statechange)
+        {
+          if(message_statechange->parse() == Gst::STATE_PLAYING)
+          {
+            m_button_filechooser.set_sensitive(false);
+            m_radio_clockwise.set_sensitive(false);
+            m_radio_anticlockwise.set_sensitive(false);
+            m_button_convert.set_sensitive(false);
+            m_button_quit.set_sensitive(false);
+          }
+        }
+        else
+        {
+          std::cerr << "Undefined state change." << std::endl;
+        }
+        break;
       }
     default:
-      std::cout << "Unhandled message on bus." << std::endl;
+      std::cerr << "Unhandled message on bus." << std::endl;
       break;
   }
 
