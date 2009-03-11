@@ -1,3 +1,11 @@
+2009-03-11  David King  <davidk@openismus.com>
+
+	* Makefile.am:
+	* configure.ac:
+	* m4/dk-warn.m4: Rename GTKMM_* to VIDROT_* for clarity. Use
+	Daniel's dk-warn.m4 automagic warning macro.
+	* autogen.sh: Force m4 include to aclocal.
+
 2009-03-10  David King  <davidk@openismus.com>
 
 	* src/main_window.cpp (MainWindow.MainWindow): Setup audio and video
