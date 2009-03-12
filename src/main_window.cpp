@@ -75,14 +75,26 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_bin_audio->add(m_queue_audio);
 
   // Must link decode to filter after stream has been identified.
-  // TODO: Use ghost pads where necessary.
+  // What happens if there is no audio stream?
   try
   {
     m_element_source->link(m_element_decode);
     m_element_decode->signal_pad_added().connect(sigc::mem_fun(*this, &MainWindow::on_decode_pad_added));
     m_queue_video->link(m_element_filter)->link(m_element_vidcomp);
     m_element_mux->link(m_element_sink);
-    //m_bin_video->link(m_element_mux);
+
+    // Ghost pad setup for audio and video bins.
+    Glib::RefPtr<Gst::Pad> bin_audio_sink = m_queue_audio->get_static_pad("sink");
+    m_bin_audio->add_pad(Gst::GhostPad::create("audsink", bin_audio_sink));
+    Glib::RefPtr<Gst::Pad> bin_audio_src = m_queue_audio->get_static_pad("src");
+    m_bin_audio->add_pad(Gst::GhostPad::create("audsrc", bin_audio_src));
+    Glib::RefPtr<Gst::Pad> bin_video_sink = m_queue_video->get_static_pad("sink");
+    m_bin_video->add_pad(Gst::GhostPad::create("vidsink", bin_video_sink));
+    Glib::RefPtr<Gst::Pad> bin_video_src = m_element_vidcomp->get_static_pad("src");
+    m_bin_video->add_pad(Gst::GhostPad::create("vidsrc", bin_video_src));
+
+    // Link bin src pads to AVI muxer.
+    m_bin_video->link(m_element_mux);
     m_bin_audio->link(m_element_mux);
   }
   catch(const std::runtime_error& error)
@@ -119,7 +131,7 @@ void MainWindow::on_file_selected()
 void MainWindow::on_button_convert()
 {
   // Set videoflip method based on radio button state.
-  // TODO: Use enumeration.
+  // TODO: Use GstVideoFlipMethod enumeration.
   m_element_filter->set_property("method", m_radio_clockwise.get_active() ? 1 : 3);
 
   // Begin conversion process (play stream).
@@ -201,6 +213,6 @@ void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
   }
   catch(const std::runtime_error& err)
   {
-    std::cerr << "Exception caught while linking: " << err.what() << std::endl;
+    std::cerr << "Exception caught while linking added pad: " << err.what() << std::endl;
   }
 }

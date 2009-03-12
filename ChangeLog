@@ -1,3 +1,8 @@
+2009-03-12  David King  <davidk@openismus.com>
+
+	* src/main_window.cpp (MainWindow.MainWindow): Connect ghost pads to
+	audio and video bins.
+
 2009-03-11  David King  <davidk@openismus.com>
 
 	* Makefile.am:
