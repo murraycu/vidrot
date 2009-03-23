@@ -203,16 +203,47 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
 
 void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
 {
-  // Acquire sink pad from videoflip element.
-  Glib::RefPtr<Gst::Pad> sink_pad = m_element_filter->get_static_pad("sink");
-
-  // Link decodebin source to videoflip sink.
-  try
+  // Check whether dynamic pad has audio or video caps.
+  Glib::RefPtr<const Gst::Caps> new_caps = new_pad->get_caps();
+  const Glib::ustring caps_string = new_caps->to_string();
+  const Glib::ustring::size_type caps_audio = caps_string.find("audio/");
+  const Glib::ustring::size_type caps_video = caps_string.find("video/");
+  if(caps_audio == Glib::ustring::npos && caps_video == Glib::ustring::npos)
   {
-    new_pad->link(sink_pad);
+    // No video or audio caps on pad.
+    std::cerr << "Not able to link dynamic pad." << std::endl;
   }
-  catch(const std::runtime_error& err)
+  else if(caps_audio != Glib::ustring::npos && caps_video == Glib::ustring::npos)
   {
-    std::cerr << "Exception caught while linking added pad: " << err.what() << std::endl;
+    // Audio caps found.
+    try
+    {
+      Glib::RefPtr<Gst::Pad> sink_pad = m_bin_audio->get_static_pad("audsink");
+      new_pad->link(sink_pad);
+    }
+    catch(const std::runtime_error& err)
+    {
+      std::cerr << "Exception caught while linking added pad: " << err.what() << std::endl;
+    }
+  }
+  else if(caps_audio == Glib::ustring::npos && caps_video != Glib::ustring::npos)
+  {
+    // Video caps found.
+    try
+    {
+      // Link decodebin source to videoflip sink.
+      // Acquire sink pad from videoflip element.
+      Glib::RefPtr<Gst::Pad> sink_pad = m_bin_video->get_static_pad("vidsink");
+      new_pad->link(sink_pad);
+    }
+    catch(const std::runtime_error& err)
+    {
+      std::cerr << "Exception caught while linking added pad: " << err.what() << std::endl;
+    }
+  }
+  else
+  {
+    // Audio and video caps found?
+    std::cerr << "Invalid caps on dynamic pad" << std::endl;
   }
 }
