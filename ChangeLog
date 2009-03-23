@@ -1,5 +1,12 @@
 2009-03-23  David King  <davidk@openismus.com>
 
+	* Makefile.am:
+	* configure.ac:
+	* src/main_window.cc:
+	* src/vidrot.cc: Move *.cpp to *.cc, at Daniel's suggestion.
+
+2009-03-23  David King  <davidk@openismus.com>
+
 	* src/main_window.cpp (MainWindow.on_decode_pad_added): Correctly
 	handle both audio and video dynamic pads.
 

@@ -1,7 +1,7 @@
 AC_INIT([VidRot], [0.1], [davidk@openismus.com], [vidrot])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_SRCDIR([src/vidrot.cpp])
+AC_CONFIG_SRCDIR([src/vidrot.cc])
 AC_PREREQ([2.57])
 AC_CONFIG_HEADERS([config.h])
 
