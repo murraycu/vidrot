@@ -62,40 +62,40 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_queue_audio = Gst::Queue::create("audio-queue");
 
   // Create elements using ElementFactory.
-  m_element_source = Gst::FileSrc::create("file-source");
-  m_element_decode = Gst::ElementFactory::create_element("decodebin", "decode-element");
+  m_element_source = Gst::ElementFactory::create_element("uridecodebin", "uri-source");
+  m_element_colorspace = Gst::ElementFactory::create_element("ffmpegcolorspace", "vid-colorspace");
+  m_element_audconvert = Gst::ElementFactory::create_element("audioconvert", "aud-convert");
   m_element_filter = Gst::ElementFactory::create_element("videoflip", "filter-element");
   m_element_vidcomp = Gst::ElementFactory::create_element("mpeg2enc", "vidcomp-element");
   m_element_mux = Gst::ElementFactory::create_element("avimux", "mux-element");
   m_element_sink = Gst::FileSink::create("file-sink");
 
   // Add elements to pipeline (before linking together).
-  pipeline->add(m_bin_video)->add(m_bin_audio)->add(m_element_source)->add(m_element_decode)->add(m_element_mux)->add(m_element_sink);
-  m_bin_video->add(m_queue_video)->add(m_element_filter)->add(m_element_vidcomp);
-  m_bin_audio->add(m_queue_audio);
+  pipeline->add(m_bin_video)->add(m_bin_audio)->add(m_element_source)->add(m_element_mux)->add(m_element_sink);
+  m_bin_video->add(m_element_colorspace)->add(m_element_filter)->add(m_element_vidcomp)->add(m_queue_video);
+  m_bin_audio->add(m_element_audconvert)->add(m_queue_audio);
 
   // Must link decode to filter after stream has been identified.
   // What happens if there is no audio stream?
   try
   {
-    m_element_source->link(m_element_decode);
-    m_element_decode->signal_pad_added().connect(sigc::mem_fun(*this, &MainWindow::on_decode_pad_added));
-    m_queue_video->link(m_element_filter)->link(m_element_vidcomp);
-    m_element_mux->link(m_element_sink);
+    m_element_source->signal_pad_added().connect(sigc::mem_fun(*this, &MainWindow::on_decode_pad_added));
+    m_element_colorspace->link(m_element_filter)->link(m_element_vidcomp)->link(m_queue_video);
 
     // Ghost pad setup for audio and video bins.
     Glib::RefPtr<Gst::Pad> bin_audio_sink = m_queue_audio->get_static_pad("sink");
     m_bin_audio->add_pad(Gst::GhostPad::create("audsink", bin_audio_sink));
-    Glib::RefPtr<Gst::Pad> bin_audio_src = m_queue_audio->get_static_pad("src");
+    Glib::RefPtr<Gst::Pad> bin_audio_src = m_element_audconvert->get_static_pad("src");
     m_bin_audio->add_pad(Gst::GhostPad::create("audsrc", bin_audio_src));
-    Glib::RefPtr<Gst::Pad> bin_video_sink = m_queue_video->get_static_pad("sink");
+    Glib::RefPtr<Gst::Pad> bin_video_sink = m_element_colorspace->get_static_pad("sink");
     m_bin_video->add_pad(Gst::GhostPad::create("vidsink", bin_video_sink));
-    Glib::RefPtr<Gst::Pad> bin_video_src = m_element_vidcomp->get_static_pad("src");
+    Glib::RefPtr<Gst::Pad> bin_video_src = m_queue_video->get_static_pad("src");
     m_bin_video->add_pad(Gst::GhostPad::create("vidsrc", bin_video_src));
 
     // Link bin src pads to AVI muxer.
     m_bin_video->link(m_element_mux);
     m_bin_audio->link(m_element_mux);
+    m_element_mux->link(m_element_sink);
   }
   catch(const std::runtime_error& error)
   {
@@ -123,7 +123,7 @@ void MainWindow::on_file_selected()
 {
   // Set URI of filesrc and filesink elements.
   const std::string uri = m_button_filechooser.get_uri();
-  m_element_source->set_uri(uri);
+  m_element_source->set_property("uri", uri);
   // TODO: Write to same file.
   m_element_sink->set_uri(uri + ".new");
 }

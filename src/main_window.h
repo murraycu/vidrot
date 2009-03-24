@@ -60,8 +60,9 @@ class MainWindow : public Gtk::Window
     Glib::RefPtr<Gst::Bin> m_bin_audio;
     Glib::RefPtr<Gst::Queue> m_queue_video;
     Glib::RefPtr<Gst::Queue> m_queue_audio;
-    Glib::RefPtr<Gst::FileSrc> m_element_source;
-    Glib::RefPtr<Gst::Element> m_element_decode;
+    Glib::RefPtr<Gst::Element> m_element_source;
+    Glib::RefPtr<Gst::Element> m_element_colorspace;
+    Glib::RefPtr<Gst::Element> m_element_audconvert;
     Glib::RefPtr<Gst::Element> m_element_filter;
     Glib::RefPtr<Gst::Element> m_element_vidcomp;
     Glib::RefPtr<Gst::Element> m_element_mux;

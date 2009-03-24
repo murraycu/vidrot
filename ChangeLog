@@ -1,3 +1,13 @@
+2009-03-24  David King  <davidk@openismus.com>
+
+	* src/main_window.cc (MainWindow.MainWindow,
+	  MainWindow.on_file_selected):
+	* src/main_window.h (MainWindow.m_element_source,
+	  MainWindow.m_element_colorspace, MainWindow.m_element_audconvert):
+	Remove decodebin and filesrc elements and replace with single
+	uridecodebin. Add colorspace and audioconvert elements.
+
+
 2009-03-23  David King  <davidk@openismus.com>
 
 	* Makefile.am:
