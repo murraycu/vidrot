@@ -64,6 +64,7 @@ class MainWindow : public Gtk::Window
     Glib::RefPtr<Gst::Element> m_element_colorspace;
     Glib::RefPtr<Gst::Element> m_element_audconvert;
     Glib::RefPtr<Gst::Element> m_element_filter;
+    Glib::RefPtr<Gst::Element> m_element_audcomp;
     Glib::RefPtr<Gst::Element> m_element_vidcomp;
     Glib::RefPtr<Gst::Element> m_element_mux;
     Glib::RefPtr<Gst::FileSink> m_element_sink;

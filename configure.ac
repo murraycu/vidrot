@@ -26,6 +26,11 @@ fi
 MY_CFLAGS="-DGDK_DISABLE_DEPRECATED=1 -DGDK_PIXBUF_DISABLE_DEPRECATED=1 -DG_DISABLE_DEPRECATED=1 -DGLIBMM_DISABLE_DEPRECATED=1 -DGTK_DISABLE_DEPRECATED=1 -DGTKMM_DISABLE_DEPRECATED=1"
 AC_SUBST(MY_CFLAGS)
 
+# We also need gst-plugins-bad for the mpeg2enc element, and gst-plugins-ugly
+# for the lame element.
+# We don't need them at build time (and can't check for them in a simple way),
+# but we will need them at run time.
+# And gst-plugins-bad must have been built with libmjpegtools-dev (on Debian/Ubuntu) available.
 VIDROT_MODULES="gtkmm-2.4 >= 2.12 gstreamermm-0.10"
 PKG_CHECK_MODULES(VIDROT, $VIDROT_MODULES)
 AC_SUBST(VIDROT_CFLAGS)
