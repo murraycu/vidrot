@@ -35,6 +35,10 @@ int main(int argc, char *argv[])
     std::cerr << "Pipeline could not be created." << std::endl;
     return 1;
   }
+  else
+  {
+    pipeline->set_state(Gst::STATE_PAUSED);
+  }
 
   MainWindow main_window(pipeline);
 

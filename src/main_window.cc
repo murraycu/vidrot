@@ -90,12 +90,15 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
     std::cerr << "Exception while adding elements: " << error.what() << std::endl;
   }
 
+  // Dynamically link uridecodebin to audio and video processing bins.
+  m_element_source->signal_pad_added().connect(sigc::mem_fun(*this, &MainWindow::on_decode_pad_added));
+  m_element_source->signal_no_more_pads().connect(sigc::mem_fun(*this, &MainWindow::on_no_more_pads));
+
   // Must link decode to filter after stream has been identified.
   // What happens if there is no audio stream?
   try
   {
-    m_element_source->signal_pad_added().connect(sigc::mem_fun(*this, &MainWindow::on_decode_pad_added));
-    m_element_colorspace->link(m_element_filter)->link(m_element_vidcomp)->link(m_queue_video);
+      m_element_colorspace->link(m_element_filter)->link(m_element_vidcomp)->link(m_queue_video);
     m_element_audconvert->link(m_element_audcomp)->link(m_queue_audio);
 
     // Ghost pad setup for audio and video bins.
@@ -140,6 +143,7 @@ void MainWindow::on_file_selected()
   // Set URI of uridecoder and filesink elements.
   const std::string uri = m_button_filechooser.get_uri();
   m_element_source->set_property("uri", uri);
+  m_element_source->set_state(Gst::STATE_PAUSED);
   // TODO: Write to same file.
   m_element_sink->set_uri(uri + ".new");
 }
@@ -227,7 +231,7 @@ void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
   if(caps_audio == Glib::ustring::npos && caps_video == Glib::ustring::npos)
   {
     // No video or audio caps on pad.
-    std::cerr << "Not able to link dynamic pad." << std::endl;
+    std::cerr << "Not able to link dynamic non-audio or video pad." << std::endl;
   }
   else if(caps_audio != Glib::ustring::npos && caps_video == Glib::ustring::npos)
   {
@@ -236,6 +240,7 @@ void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
     {
       Glib::RefPtr<Gst::Pad> sink_pad = m_bin_audio->get_static_pad("audsink");
       new_pad->link(sink_pad);
+      m_bin_audio->set_state(Gst::STATE_PAUSED);
     }
     catch(const std::runtime_error& err)
     {
@@ -251,6 +256,7 @@ void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
       // Acquire sink pad from videoflip element.
       Glib::RefPtr<Gst::Pad> sink_pad = m_bin_video->get_static_pad("vidsink");
       new_pad->link(sink_pad);
+      m_bin_video->set_state(Gst::STATE_PAUSED);
     }
     catch(const std::runtime_error& err)
     {
@@ -262,4 +268,10 @@ void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
     // Audio and video caps found?
     std::cerr << "Invalid caps on dynamic pad" << std::endl;
   }
+}
+
+void MainWindow::on_no_more_pads()
+{
+  m_element_sink->set_state(Gst::STATE_PAUSED);
+  m_element_mux->set_state(Gst::STATE_PAUSED);
 }

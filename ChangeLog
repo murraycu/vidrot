@@ -1,3 +1,9 @@
+2009-04-02  David King  <davidk@openismus.com>
+
+	* src/main_window.[cc|h]: Change state of elements to PAUSED as
+	soon as	possible to reduce latency on changing from NULL to
+	PLAYING.
+
 2009-04-01  Murray Cumming  <murrayc@openismus.com>
 
 	* configure.ac: Added a comment hinting about a needed -bad and
