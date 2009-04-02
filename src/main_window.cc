@@ -34,6 +34,9 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   set_title(PACKAGE_STRING);
   set_border_width(12);
 
+  // Cannot convert if a file is not selected.
+  m_button_convert.set_sensitive(false);
+
   // Filter videos for FileChooserButton.
   Gtk::FileFilter filter_video;
   filter_video.set_name("Video files");
@@ -68,13 +71,13 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   g_assert(m_element_colorspace);
   m_element_audconvert = Gst::ElementFactory::create_element("audioconvert", "aud-convert");
   g_assert(m_element_audconvert);
-  m_element_audcomp = Gst::ElementFactory::create_element("lame", "audcomp-element");
+  m_element_audcomp = Gst::ElementFactory::create_element("vorbisenc", "audcomp-element");
   g_assert(m_element_audcomp);
   m_element_filter = Gst::ElementFactory::create_element("videoflip", "filter-element");
   g_assert(m_element_filter);
-  m_element_vidcomp = Gst::ElementFactory::create_element("mpeg2enc", "vidcomp-element");
+  m_element_vidcomp = Gst::ElementFactory::create_element("theoraenc", "vidcomp-element");
   g_assert(m_element_vidcomp);
-  m_element_mux = Gst::ElementFactory::create_element("avimux", "mux-element");
+  m_element_mux = Gst::ElementFactory::create_element("oggmux", "mux-element");
   g_assert(m_element_mux);
   m_element_sink = Gst::FileSink::create("file-sink");
 
@@ -142,10 +145,12 @@ void MainWindow::on_file_selected()
 {
   // Set URI of uridecoder and filesink elements.
   const std::string uri = m_button_filechooser.get_uri();
+  m_element_source->set_state(Gst::STATE_NULL);
   m_element_source->set_property("uri", uri);
   m_element_source->set_state(Gst::STATE_PAUSED);
   // TODO: Write to same file.
   m_element_sink->set_uri(uri + ".new");
+  m_button_convert.set_sensitive();
 }
 
 void MainWindow::on_button_convert()

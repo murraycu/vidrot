@@ -1,5 +1,11 @@
 2009-04-02  David King  <davidk@openismus.com>
 
+	* src/main_window.cc: Change output to OGG container, Theora
+	video and Vorbis audio. Set convert button insensitive by
+	default. Reset uridecodebin to NULL on changing URI.
+
+2009-04-02  David King  <davidk@openismus.com>
+
 	* src/main_window.[cc|h]: Change state of elements to PAUSED as
 	soon as	possible to reduce latency on changing from NULL to
 	PLAYING.
