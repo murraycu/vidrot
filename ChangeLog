@@ -1,3 +1,9 @@
+2009-04-03  David King  <davidk@openismus.com>
+
+	* src/main_window.[cc|h]: Revert output to MPEG2/MP3 in AVI.
+	Add videorate element before mpeg2enc element. Add tooltips
+	for widgets in main window.
+
 2009-04-02  David King  <davidk@openismus.com>
 
 	* src/main_window.cc: Change output to OGG container, Theora

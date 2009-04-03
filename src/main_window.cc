@@ -71,13 +71,15 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   g_assert(m_element_colorspace);
   m_element_audconvert = Gst::ElementFactory::create_element("audioconvert", "aud-convert");
   g_assert(m_element_audconvert);
-  m_element_audcomp = Gst::ElementFactory::create_element("vorbisenc", "audcomp-element");
+  m_element_audcomp = Gst::ElementFactory::create_element("lame", "audcomp-element");
   g_assert(m_element_audcomp);
   m_element_filter = Gst::ElementFactory::create_element("videoflip", "filter-element");
   g_assert(m_element_filter);
-  m_element_vidcomp = Gst::ElementFactory::create_element("theoraenc", "vidcomp-element");
+  m_element_vidrate = Gst::ElementFactory::create_element("videorate", "vidrate");
+  g_assert(m_element_vidrate);
+  m_element_vidcomp = Gst::ElementFactory::create_element("mpeg2enc", "vidcomp-element");
   g_assert(m_element_vidcomp);
-  m_element_mux = Gst::ElementFactory::create_element("oggmux", "mux-element");
+  m_element_mux = Gst::ElementFactory::create_element("avimux", "mux-element");
   g_assert(m_element_mux);
   m_element_sink = Gst::FileSink::create("file-sink");
 
@@ -85,7 +87,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   try
   {
     pipeline->add(m_bin_video)->add(m_bin_audio)->add(m_element_source)->add(m_element_mux)->add(m_element_sink);
-    m_bin_video->add(m_element_colorspace)->add(m_element_filter)->add(m_element_vidcomp)->add(m_queue_video);
+    m_bin_video->add(m_element_colorspace)->add(m_element_filter)->add(m_element_vidrate)->add(m_element_vidcomp)->add(m_queue_video);
     m_bin_audio->add(m_element_audconvert)->add(m_element_audcomp)->add(m_queue_audio);
   }
   catch(const std::runtime_error& error)
@@ -101,7 +103,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   // What happens if there is no audio stream?
   try
   {
-      m_element_colorspace->link(m_element_filter)->link(m_element_vidcomp)->link(m_queue_video);
+      m_element_colorspace->link(m_element_filter)->link(m_element_vidrate)->link(m_element_vidcomp)->link(m_queue_video);
     m_element_audconvert->link(m_element_audcomp)->link(m_queue_audio);
 
     // Ghost pad setup for audio and video bins.
@@ -123,6 +125,12 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   {
     std::cerr << "Exception while linking elements: " << error.what() << std::endl;
   }
+
+  m_button_filechooser.set_tooltip_text("Select a video to rotate");
+  m_radio_anticlockwise.set_tooltip_text("Rotate the video anticlockwise by 90° ");
+  m_radio_clockwise.set_tooltip_text("Rotate the video clockwise by 90°");
+  m_button_convert.set_tooltip_text("Begin conversion");
+  m_button_quit.set_tooltip_text("Quit " PACKAGE_NAME);
 
   m_vbox.pack_start(m_button_filechooser);
   m_vbox.pack_start(m_radio_anticlockwise);
