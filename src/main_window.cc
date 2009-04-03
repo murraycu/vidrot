@@ -24,9 +24,11 @@
 
 MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_vbox(false, 6),
+  m_hbuttonbox(Gtk::BUTTONBOX_END, 6),
   m_button_filechooser("Select a video to open", Gtk::FILE_CHOOSER_ACTION_OPEN),
   m_radio_clockwise(m_radiogroup, "Rotate 90° _clockwise", true),
   m_radio_anticlockwise(m_radiogroup, "Rotate 90° _anticlockwise", true),
+  // m_progress_convert has no arguments for default constructor.
   m_button_convert(Gtk::Stock::EXECUTE),
   m_button_quit(Gtk::Stock::QUIT),
   m_watch_id(0)
@@ -126,17 +128,22 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
     std::cerr << "Exception while linking elements: " << error.what() << std::endl;
   }
 
+  // Set tooltips.
   m_button_filechooser.set_tooltip_text("Select a video to rotate");
   m_radio_anticlockwise.set_tooltip_text("Rotate the video anticlockwise by 90° ");
   m_radio_clockwise.set_tooltip_text("Rotate the video clockwise by 90°");
+  m_progress_convert.set_tooltip_text("Progress of conversion");
   m_button_convert.set_tooltip_text("Begin conversion");
   m_button_quit.set_tooltip_text("Quit " PACKAGE_NAME);
 
+  // Pack widgets into vbox.
   m_vbox.pack_start(m_button_filechooser);
   m_vbox.pack_start(m_radio_anticlockwise);
   m_vbox.pack_start(m_radio_clockwise);
-  m_vbox.pack_start(m_button_convert);
-  m_vbox.pack_start(m_button_quit);
+  m_vbox.pack_start(m_progress_convert);
+  m_hbuttonbox.pack_start(m_button_convert);
+  m_hbuttonbox.pack_start(m_button_quit);
+  m_vbox.pack_start(m_hbuttonbox);
   add(m_vbox);
 
   m_pipeline = pipeline;
@@ -159,6 +166,7 @@ void MainWindow::on_file_selected()
   // TODO: Write to same file.
   m_element_sink->set_uri(uri + ".new");
   m_button_convert.set_sensitive();
+  m_progress_convert.set_fraction(0.0);
 }
 
 void MainWindow::on_button_convert()
@@ -188,6 +196,8 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
       m_button_filechooser.set_sensitive();
       m_radio_clockwise.set_sensitive();
       m_radio_anticlockwise.set_sensitive();
+      m_progress_convert.set_fraction(1.0);
+      m_progress_convert.set_text("Conversion complete!");
       m_button_convert.set_sensitive();
       m_button_quit.set_sensitive();
       break;
@@ -216,8 +226,10 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
             m_button_filechooser.set_sensitive(false);
             m_radio_clockwise.set_sensitive(false);
             m_radio_anticlockwise.set_sensitive(false);
+            m_progress_convert.set_text("Conversion progress");
             m_button_convert.set_sensitive(false);
             m_button_quit.set_sensitive(false);
+            m_timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(*this, &MainWindow::on_convert_timeout), 200);
           }
         }
         else
@@ -283,8 +295,24 @@ void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
   }
 }
 
+// Move elements to PAUSED state as soon as possible.
 void MainWindow::on_no_more_pads()
 {
   m_element_sink->set_state(Gst::STATE_PAUSED);
   m_element_mux->set_state(Gst::STATE_PAUSED);
+}
+
+// Update progress bar every 200 ms.
+bool MainWindow::on_convert_timeout()
+{
+  Gst::Format format = Gst::FORMAT_TIME;
+  gint64 position = 0;
+  gint64 duration = 0;
+
+  if(m_pipeline->query_position(format, position) && m_pipeline->query_duration(format, duration))
+  {
+    m_progress_convert.set_fraction(double(position) / duration);
+  }
+
+  return true;
 }

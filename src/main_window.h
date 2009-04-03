@@ -45,13 +45,16 @@ class MainWindow : public Gtk::Window
     bool on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::RefPtr<Gst::Message>& message);
     void on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad);
     void on_no_more_pads();
+    bool on_convert_timeout();
 
     // Widgets.
     Gtk::VBox m_vbox;
+    Gtk::HButtonBox m_hbuttonbox;
     Gtk::FileChooserButton m_button_filechooser;
     Gtk::RadioButtonGroup m_radiogroup;
     Gtk::RadioButton m_radio_clockwise;
     Gtk::RadioButton m_radio_anticlockwise;
+    Gtk::ProgressBar m_progress_convert;
     Gtk::Button m_button_convert;
     Gtk::Button m_button_quit;
 
@@ -71,6 +74,7 @@ class MainWindow : public Gtk::Window
     Glib::RefPtr<Gst::Element> m_element_mux;
     Glib::RefPtr<Gst::FileSink> m_element_sink;
     guint m_watch_id;
+    sigc::connection m_timeout_connection;
 };
 
 #endif /* _MAINWINDOW_H */

@@ -1,0 +1,9 @@
+TODO
+----
+
+* Preview support (with filter?)
+* Graceful error handling
+* Remuxing support (when possible)
+* Ability to choose output container/codecs based on profiles
+** Only display codecs for which support is available
+* Ability to use other custom filters

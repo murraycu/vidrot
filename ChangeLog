@@ -1,5 +1,11 @@
 2009-04-03  David King  <davidk@openismus.com>
 
+	* src/main_window.[cc|h]: Add progress bar, using timeout
+	function. Add HButtonbox for convert and quit buttons.
+	* TODO: Initial commit.
+
+2009-04-03  David King  <davidk@openismus.com>
+
 	* src/main_window.[cc|h]: Revert output to MPEG2/MP3 in AVI.
 	Add videorate element before mpeg2enc element. Add tooltips
 	for widgets in main window.
