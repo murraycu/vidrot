@@ -1,3 +1,8 @@
+2009-04-09  David King  <davidk@openismus.com>
+
+	* src/main_window.[cc|h]: Add typefind bin and output stream
+	type to stdout on file selection (breaks conversion).
+
 2009-04-03  David King  <davidk@openismus.com>
 
 	* src/main_window.[cc|h]: Add progress bar, using timeout

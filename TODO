@@ -1,9 +1,10 @@
 TODO
 ----
 
-* Preview support (with filter?)
-* Graceful error handling
-* Remuxing support (when possible)
-* Ability to choose output container/codecs based on profiles
+* Preview support
+** Updating preview with selected operations from UI
+* Graceful error handling (dialogs or logfile?)
+* Remuxing support (when possible, i.e. only with audio)
+* Ability to choose output container/codecs based on profiles (Flickr, ...)
 ** Only display codecs for which support is available
 * Ability to use other custom filters

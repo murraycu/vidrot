@@ -26,6 +26,8 @@
 #include <gstreamermm/filesink.h>
 #include <gstreamermm/message.h>
 #include <gstreamermm/queue.h>
+#include <gstreamermm/tee.h>
+#include <gstreamermm/typefindelement.h>
 #include <iostream>
 #include <config.h>
 
@@ -46,6 +48,7 @@ class MainWindow : public Gtk::Window
     void on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad);
     void on_no_more_pads();
     bool on_convert_timeout();
+    void on_stream_type(guint index, const Glib::RefPtr<Gst::Caps>& found_caps);
 
     // Widgets.
     Gtk::VBox m_vbox;
@@ -60,10 +63,12 @@ class MainWindow : public Gtk::Window
 
     // gstreamermm Variables.
     Glib::RefPtr<Gst::Pipeline> m_pipeline;
+    Glib::RefPtr<Gst::Bin> m_bin_typefind;
     Glib::RefPtr<Gst::Bin> m_bin_video;
     Glib::RefPtr<Gst::Bin> m_bin_audio;
     Glib::RefPtr<Gst::Queue> m_queue_video;
     Glib::RefPtr<Gst::Queue> m_queue_audio;
+    Glib::RefPtr<Gst::Tee> m_tee_video;
     Glib::RefPtr<Gst::Element> m_element_source;
     Glib::RefPtr<Gst::Element> m_element_colorspace;
     Glib::RefPtr<Gst::Element> m_element_audconvert;
