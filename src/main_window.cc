@@ -59,7 +59,6 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_watch_id = bus->add_watch(sigc::mem_fun(*this, &MainWindow::on_bus_message));
 
   // Create Bins for audio and video filtering.
-  m_bin_typefind = Gst::Bin::create("typefind-bin");
   m_bin_video = Gst::Bin::create("video-bin");
   m_bin_audio = Gst::Bin::create("audio-bin");
 
@@ -92,7 +91,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   // Add elements to pipeline (before linking together).
   try
   {
-    pipeline->add(m_bin_typefind)->add(m_bin_video)->add(m_bin_audio)->add(m_element_source)->add(m_element_mux)->add(m_element_sink)->add(m_tee_video);
+    pipeline->add(m_bin_video)->add(m_bin_audio)->add(m_element_source)->add(m_element_mux)->add(m_element_sink)->add(m_tee_video);
     m_bin_video->add(m_element_colorspace)->add(m_element_filter)->add(m_element_vidrate)->add(m_element_vidcomp)->add(m_queue_video);
     m_bin_audio->add(m_element_audconvert)->add(m_element_audcomp)->add(m_queue_audio);
   }
@@ -162,17 +161,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_file_selected()
 {
-  const Glib::ustring file = m_button_filechooser.get_filename();
   const std::string uri = m_button_filechooser.get_uri();
-
-  // Typefind file.
-  Glib::RefPtr<Gst::Element> filesrc = Gst::ElementFactory::create_element("filesrc");
-  Glib::RefPtr<Gst::TypeFindElement> typefinder = Gst::TypeFindElement::create();
-  m_bin_typefind->add(filesrc)->add(typefinder);
-  filesrc->link(typefinder);
-  filesrc->set_property("location", file);
-  typefinder->signal_have_type().connect(sigc::mem_fun(*this, &MainWindow::on_stream_type));
-  m_bin_typefind->set_state(Gst::STATE_PAUSED);
 
   // Set URI of uridecoder and filesink elements.
   m_element_source->set_state(Gst::STATE_NULL);
@@ -191,7 +180,7 @@ void MainWindow::on_button_convert()
   m_element_filter->set_property("method", m_radio_clockwise.get_active() ? 1 : 3);
 
   // Begin conversion process (play stream).
-//  m_pipeline->set_state(Gst::STATE_PLAYING);
+  m_pipeline->set_state(Gst::STATE_PLAYING);
 }
 
 void MainWindow::on_button_quit()
@@ -215,6 +204,7 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
       m_progress_convert.set_text("Conversion complete!");
       m_button_convert.set_sensitive();
       m_button_quit.set_sensitive();
+      m_timeout_connection.disconnect();
       break;
     case Gst::MESSAGE_ERROR:
       {
@@ -330,14 +320,4 @@ bool MainWindow::on_convert_timeout()
   }
 
   return true;
-}
-
-// Stream type found, setup preview and possible containers.
-void MainWindow::on_stream_type(guint probability, const Glib::RefPtr<Gst::Caps>& found_caps)
-{
-  for(guint i = 0; i < found_caps->size(); ++i)
-  {
-    const Gst::Structure structure = found_caps->get_structure(i);
-    std::cout << "Structure: " << i << ", caps: " << structure.to_string() << std::endl;
-  }
 }
