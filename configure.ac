@@ -12,17 +12,12 @@ AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_PROG_INSTALL
 
-AC_MSG_CHECKING(whether to build with debugging information)
-debugger=no
-AC_ARG_ENABLE(debug,AC_HELP_STRING([--enable-debug],[enable debugging symbols and messages (default=no)]),debugger="$enableval")
-AC_MSG_RESULT($debugger)
-if test x"$debugger" = x"yes"; then
-	AC_DEFINE(DEBUG, 1, [Define to enable debugging symbols and messages])
-	DEBUG_CFLAGS="-g -Werror"
-	AC_SUBST([CFLAGS], $DEBUG_CFLAGS)
-fi
+GETTEXT_PACKAGE=vidrot
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], ["$GETTEXT_PACKAGE"], [The deomain to use with gettext.])
+AM_GLIB_GNU_GETTEXT
 
-# Disable depracated features in libraries.
+# Disable deprecated features in libraries.
 MY_CFLAGS="-DGDK_DISABLE_DEPRECATED=1 -DGDK_PIXBUF_DISABLE_DEPRECATED=1 -DG_DISABLE_DEPRECATED=1 -DGLIBMM_DISABLE_DEPRECATED=1 -DGTK_DISABLE_DEPRECATED=1 -DGTKMM_DISABLE_DEPRECATED=1"
 AC_SUBST(MY_CFLAGS)
 
@@ -42,5 +37,5 @@ DK_ARG_ENABLE_WARNINGS([VIDROT_WARNINGS],
         [-Wall],
         [-pedantic -Wall -Wextra])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile po/Makefile.in])
 AC_OUTPUT

@@ -3,6 +3,7 @@ Implemented features
 
 * Converts from any audio + video source supported by Gstreamer to mpeg2/mp3 in AVI output
 * Rotates video clockwise or anticlockwise, depending on user selection
+* i18n
 
 TODO
 ----

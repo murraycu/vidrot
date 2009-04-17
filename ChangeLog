@@ -1,3 +1,13 @@
+2009-04-17  David King  <davidk@openismus.com>
+
+	* m4/*
+	* po/*:
+	* src/main_window.[cc|h]:
+	* ABOUT-NLS:
+	* configure.ac:
+	* Makefile.am:
+	* TODO: Integrate glib-gettext for i18n support.
+
 2009-04-16  David King  <davidk@openismus.com>
 
 	* src/main_window.[cc|h]: Revert typefind change. Update TODO.

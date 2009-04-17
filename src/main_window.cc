@@ -19,15 +19,16 @@
 #include "main_window.h"
 #include <gtkmm.h>
 #include <gstreamermm.h>
+#include <glibmm/i18n.h>
 #include <iostream>
 #include <config.h>
 
 MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_vbox(false, 6),
   m_hbuttonbox(Gtk::BUTTONBOX_END, 6),
-  m_button_filechooser("Select a video to open", Gtk::FILE_CHOOSER_ACTION_OPEN),
-  m_radio_clockwise(m_radiogroup, "Rotate 90° _clockwise", true),
-  m_radio_anticlockwise(m_radiogroup, "Rotate 90° _anticlockwise", true),
+  m_button_filechooser(_("Select a video to open"), Gtk::FILE_CHOOSER_ACTION_OPEN),
+  m_radio_clockwise(m_radiogroup, _("Rotate 90° _clockwise"), true),
+  m_radio_anticlockwise(m_radiogroup, _("Rotate 90° _anticlockwise"), true),
   // m_progress_convert has no arguments for default constructor.
   m_button_convert(Gtk::Stock::EXECUTE),
   m_button_quit(Gtk::Stock::QUIT),
@@ -41,11 +42,11 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
 
   // Filter videos for FileChooserButton.
   Gtk::FileFilter filter_video;
-  filter_video.set_name("Video files");
+  filter_video.set_name(_("Video files"));
   filter_video.add_mime_type("video/*");
   m_button_filechooser.add_filter(filter_video);
   Gtk::FileFilter filter_any;
-  filter_any.set_name(("All files"));
+  filter_any.set_name(_("All files"));
   filter_any.add_pattern("*");
   m_button_filechooser.add_filter(filter_any);
 
@@ -97,7 +98,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   }
   catch(const std::runtime_error& error)
   {
-    std::cerr << "Exception while adding elements: " << error.what() << std::endl;
+    std::cerr << _("Exception while adding elements: ") << error.what() << std::endl;
   }
 
   // Dynamically link uridecodebin to audio and video processing bins.
@@ -128,15 +129,15 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   }
   catch(const std::runtime_error& error)
   {
-    std::cerr << "Exception while linking elements: " << error.what() << std::endl;
+    std::cerr << _("Exception while linking elements: ") << error.what() << std::endl;
   }
 
   // Set tooltips.
-  m_button_filechooser.set_tooltip_text("Select a video to rotate");
-  m_radio_anticlockwise.set_tooltip_text("Rotate the video anticlockwise by 90° ");
-  m_radio_clockwise.set_tooltip_text("Rotate the video clockwise by 90°");
-  m_progress_convert.set_tooltip_text("Progress of conversion");
-  m_button_convert.set_tooltip_text("Begin conversion");
+  m_button_filechooser.set_tooltip_text(_("Select a video to rotate"));
+  m_radio_anticlockwise.set_tooltip_text(_("Rotate the video anticlockwise by 90°"));
+  m_radio_clockwise.set_tooltip_text(_("Rotate the video clockwise by 90°"));
+  m_progress_convert.set_tooltip_text(_("Progress of conversion"));
+  m_button_convert.set_tooltip_text(_("Begin conversion"));
   m_button_quit.set_tooltip_text("Quit " PACKAGE_NAME);
 
   // Pack widgets into vbox.
@@ -201,7 +202,7 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
       m_radio_clockwise.set_sensitive();
       m_radio_anticlockwise.set_sensitive();
       m_progress_convert.set_fraction(1.0);
-      m_progress_convert.set_text("Conversion complete!");
+      m_progress_convert.set_text(_("Conversion complete!"));
       m_button_convert.set_sensitive();
       m_button_quit.set_sensitive();
       m_timeout_connection.disconnect();
@@ -212,11 +213,11 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
         if(message_error)
         {
           Glib::Error err = message_error->parse();
-          std::cerr << "Error: " << err.what() << std::endl;
+          std::cerr << _("Error: ") << err.what() << std::endl;
         }
         else
         {
-          std::cerr << "Undefined error." << std::endl;
+          std::cerr << _("Undefined error.") << std::endl;
         }
         break;
       }
@@ -231,7 +232,7 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
             m_button_filechooser.set_sensitive(false);
             m_radio_clockwise.set_sensitive(false);
             m_radio_anticlockwise.set_sensitive(false);
-            m_progress_convert.set_text("Conversion progress");
+            m_progress_convert.set_text(_("Conversion progress"));
             m_button_convert.set_sensitive(false);
             m_button_quit.set_sensitive(false);
             m_timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(*this, &MainWindow::on_convert_timeout), 200);
@@ -239,12 +240,12 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
         }
         else
         {
-          std::cerr << "Undefined state change." << std::endl;
+          std::cerr << _("Undefined state change.") << std::endl;
         }
         break;
       }
     default:
-      std::cerr << "Unhandled message on bus." << std::endl;
+      std::cerr << _("Unhandled message on bus.") << std::endl;
       break;
   }
 
@@ -261,7 +262,7 @@ void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
   if(caps_audio == Glib::ustring::npos && caps_video == Glib::ustring::npos)
   {
     // No video or audio caps on pad.
-    std::cerr << "Not able to link dynamic non-audio or video pad." << std::endl;
+    std::cerr << _("Not able to link dynamic non-audio or video pad.") << std::endl;
   }
   else if(caps_audio != Glib::ustring::npos && caps_video == Glib::ustring::npos)
   {
@@ -274,7 +275,7 @@ void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
     }
     catch(const std::runtime_error& err)
     {
-      std::cerr << "Exception caught while linking added pad: " << err.what() << std::endl;
+      std::cerr << _("Exception caught while linking added pad: ") << err.what() << std::endl;
     }
   }
   else if(caps_audio == Glib::ustring::npos && caps_video != Glib::ustring::npos)
@@ -290,13 +291,13 @@ void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
     }
     catch(const std::runtime_error& err)
     {
-      std::cerr << "Exception caught while linking added pad: " << err.what() << std::endl;
+      std::cerr << _("Exception caught while linking added pad: ") << err.what() << std::endl;
     }
   }
   else
   {
     // Audio and video caps found?
-    std::cerr << "Invalid caps on dynamic pad" << std::endl;
+    std::cerr << _("Invalid caps on dynamic pad") << std::endl;
   }
 }
 

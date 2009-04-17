@@ -20,10 +20,16 @@
 #include <gtkmm.h>
 #include <gstreamermm.h>
 #include <iostream>
+#include <glibmm/i18n.h>
 #include <config.h>
 
 int main(int argc, char *argv[])
 {
+  // gettext initialisation.
+  bindtextdomain(GETTEXT_PACKAGE, LOCALE_DIR);
+  bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+  textdomain(GETTEXT_PACKAGE);
+
   Gtk::Main kit(argc, argv);
   Gst::init(argc, argv);
 
@@ -32,7 +38,7 @@ int main(int argc, char *argv[])
 
   if(!pipeline)
   {
-    std::cerr << "Pipeline could not be created." << std::endl;
+    std::cerr << _("Pipeline could not be created.") << std::endl;
     return 1;
   }
   else
