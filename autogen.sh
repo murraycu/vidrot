@@ -1,5 +1,7 @@
 #!/bin/sh -e
 
+glib-gettextize -c -f
+intltoolize --automake --copy --force
 ${ACLOCAL-aclocal} -I m4 $ACLOCAL_FLAGS
 ${AUTOCONF-autoconf}
 ${AUTOHEADER-autoheader}

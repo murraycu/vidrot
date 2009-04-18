@@ -13,8 +13,10 @@ TODO
 * Estimate completion time in progress bar
 * Graceful error handling (dialogs or logfile?)
 * Remuxing support (when possible, i.e. only with audio)
-** This will mean that audio (which cannot be rotated) does not need to be recompressed, just taken from the demuxed input and remuxed with the (rotated) video at the end of the pipeline.
-** Video must be recompressed, as filters are applied to the raw video stream only.
+** This will mean that audio (which cannot be rotated) does not need to be recompressed, just taken from the demuxed input and remuxed with the (rotated) video at the end of the pipeline
+** Will also allow rotation while keeping the same container/muxer as the source video
+** Video must be recompressed, as filters are applied to the raw video stream only
 * Ability to choose output container/codecs based on profiles (Flickr, ...)
 ** Only display codecs for which support is available
+** "As-is" profile for same codec and container as source video
 * Ability to use other custom filters
