@@ -66,9 +66,14 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   // Create Queue elements.
   m_queue_video = Gst::Queue::create("video-queue");
   m_queue_audio = Gst::Queue::create("audio-queue");
+  m_queue_preview = Gst::Queue::create("preview-queue");
 
   // Tee element for video preview.
   m_tee_video = Gst::Tee::create("video-tee");
+  m_cspace_preview = Gst::ElementFactory::create_element("ffmpegcolorspace", "preview-cspace");
+  g_assert(m_cspace_preview);
+  m_video_preview = Gst::XImageSink::create("video-preview");
+  g_assert(m_video_preview);
 
   // Create elements using ElementFactory.
   m_element_source = Gst::ElementFactory::create_element("uridecodebin", "uri-source");
@@ -92,8 +97,8 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   // Add elements to pipeline (before linking together).
   try
   {
-    pipeline->add(m_bin_video)->add(m_bin_audio)->add(m_element_source)->add(m_element_mux)->add(m_element_sink)->add(m_tee_video);
-    m_bin_video->add(m_element_colorspace)->add(m_element_filter)->add(m_element_vidrate)->add(m_element_vidcomp)->add(m_queue_video);
+    pipeline->add(m_bin_video)->add(m_bin_audio)->add(m_element_source)->add(m_element_mux)->add(m_element_sink);
+    m_bin_video->add(m_element_colorspace)->add(m_element_filter)->add(m_element_vidrate)->add(m_tee_video)->add(m_queue_preview)->add(m_cspace_preview)->add(m_video_preview)->add(m_element_vidcomp)->add(m_queue_video);
     m_bin_audio->add(m_element_audconvert)->add(m_element_audcomp)->add(m_queue_audio);
   }
   catch(const std::runtime_error& error)
@@ -109,8 +114,14 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   // What happens if there is no audio stream?
   try
   {
-      m_element_colorspace->link(m_element_filter)->link(m_element_vidrate)->link(m_element_vidcomp)->link(m_queue_video);
+    m_element_colorspace->link(m_element_filter)->link(m_element_vidrate)->link(m_tee_video)->link(m_element_vidcomp)->link(m_queue_video);
     m_element_audconvert->link(m_element_audcomp)->link(m_queue_audio);
+
+    // Get request pad to link tee element to video preview element.
+    Glib::RefPtr<Gst::Pad> pad_tee_source = m_tee_video->get_request_pad("src%d");
+    Glib::RefPtr<Gst::Pad> pad_queue_sink = m_queue_preview->get_static_pad("sink");
+    pad_tee_source->link(pad_queue_sink);
+    m_queue_preview->link(m_cspace_preview)->link(m_video_preview);
 
     // Ghost pad setup for audio and video bins.
     Glib::RefPtr<Gst::Pad> bin_audio_sink = m_element_audconvert->get_static_pad("sink");
@@ -142,6 +153,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
 
   // Pack widgets into vbox.
   m_vbox.pack_start(m_button_filechooser);
+  m_vbox.pack_start(m_video_area);
   m_vbox.pack_start(m_radio_anticlockwise);
   m_vbox.pack_start(m_radio_clockwise);
   m_vbox.pack_start(m_progress_convert);
@@ -158,6 +170,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
 MainWindow::~MainWindow()
 {
   m_pipeline->get_bus()->remove_watch(m_watch_id);
+  m_pipeline->set_state(Gst::STATE_NULL);
 }
 
 void MainWindow::on_file_selected()

@@ -1,3 +1,8 @@
+2009-04-21  David King  <davidk@openismus.com>
+
+	* src/main_window.[cc|h]: Preliminary preview support. Slows
+	encoding down to realtime and appears in separate window.
+
 2009-04-18  David King  <daivdk@openismus.com>
 
 	* m4/*:

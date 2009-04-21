@@ -28,10 +28,9 @@
 #include <gstreamermm/queue.h>
 #include <gstreamermm/tee.h>
 #include <gstreamermm/typefindelement.h>
+#include <gstreamermm/ximagesink.h>
 #include <iostream>
 #include <config.h>
-
-#define VIDROT_MAINWINDOW_UI "main_window_uimanager.ui"
 
 class MainWindow : public Gtk::Window
 {
@@ -53,6 +52,7 @@ class MainWindow : public Gtk::Window
     Gtk::VBox m_vbox;
     Gtk::HButtonBox m_hbuttonbox;
     Gtk::FileChooserButton m_button_filechooser;
+    Gtk::DrawingArea m_video_area;
     Gtk::RadioButtonGroup m_radiogroup;
     Gtk::RadioButton m_radio_clockwise;
     Gtk::RadioButton m_radio_anticlockwise;
@@ -66,7 +66,10 @@ class MainWindow : public Gtk::Window
     Glib::RefPtr<Gst::Bin> m_bin_audio;
     Glib::RefPtr<Gst::Queue> m_queue_video;
     Glib::RefPtr<Gst::Queue> m_queue_audio;
+    Glib::RefPtr<Gst::Queue> m_queue_preview;
     Glib::RefPtr<Gst::Tee> m_tee_video;
+    Glib::RefPtr<Gst::XImageSink> m_video_preview;
+    Glib::RefPtr<Gst::Element> m_cspace_preview;
     Glib::RefPtr<Gst::Element> m_element_source;
     Glib::RefPtr<Gst::Element> m_element_colorspace;
     Glib::RefPtr<Gst::Element> m_element_audconvert;
