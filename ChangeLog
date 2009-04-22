@@ -1,4 +1,8 @@
-2009-04-21  David King  <davidk@openismus.com>
+2009-04-22  David King  <davidk@openismus.com>
+
+	* vidrot.doap: Basic DOAP file.
+
+2009-04-22  David King  <davidk@openismus.com>
 
 	* src/main_window.[cc|h]: Move separate preview window into
 	m_video_area widget. Code taken from gstreamermm media player
