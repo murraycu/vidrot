@@ -19,6 +19,7 @@
 #include "main_window.h"
 #include <gtkmm.h>
 #include <gstreamermm.h>
+#include <gdk/gdkx.h>
 #include <glibmm/i18n.h>
 #include <iostream>
 #include <config.h>
@@ -57,6 +58,8 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
 
   // Attach watcher to message bus.
   Glib::RefPtr<Gst::Bus> bus = pipeline->get_bus();
+  bus->enable_sync_message_emission();
+  bus->signal_sync_message().connect(sigc::mem_fun(*this, &MainWindow::on_bus_message_sync));
   m_watch_id = bus->add_watch(sigc::mem_fun(*this, &MainWindow::on_bus_message));
 
   // Create Bins for audio and video filtering.
@@ -152,14 +155,14 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_button_quit.set_tooltip_text("Quit " PACKAGE_NAME);
 
   // Pack widgets into vbox.
-  m_vbox.pack_start(m_button_filechooser);
-  m_vbox.pack_start(m_video_area);
-  m_vbox.pack_start(m_radio_anticlockwise);
-  m_vbox.pack_start(m_radio_clockwise);
-  m_vbox.pack_start(m_progress_convert);
+  m_vbox.pack_start(m_button_filechooser, Gtk::PACK_SHRINK);
+  m_vbox.pack_start(m_video_area, Gtk::PACK_EXPAND_WIDGET);
+  m_vbox.pack_start(m_radio_anticlockwise, Gtk::PACK_SHRINK);
+  m_vbox.pack_start(m_radio_clockwise, Gtk::PACK_SHRINK);
+  m_vbox.pack_start(m_progress_convert, Gtk::PACK_SHRINK);
   m_hbuttonbox.pack_start(m_button_convert);
   m_hbuttonbox.pack_start(m_button_quit);
-  m_vbox.pack_start(m_hbuttonbox);
+  m_vbox.pack_start(m_hbuttonbox, Gtk::PACK_SHRINK);
   add(m_vbox);
 
   m_pipeline = pipeline;
@@ -185,6 +188,9 @@ void MainWindow::on_file_selected()
   m_element_sink->set_uri(uri + ".new");
   m_button_convert.set_sensitive();
   m_progress_convert.set_fraction(0.0);
+  // Set preview size to 0, add probe so that first buffer sets preview size.
+  m_video_area.set_size_request(0, 0);
+  m_pad_probe_id = m_video_preview->get_static_pad("sink")->add_buffer_probe(sigc::mem_fun(*this, &MainWindow::on_video_pad_got_buffer));
 }
 
 void MainWindow::on_button_convert()
@@ -204,6 +210,31 @@ void MainWindow::on_button_quit()
   return;
 }
 
+// Process synchronous bus messages.
+void MainWindow::on_bus_message_sync(const Glib::RefPtr<Gst::Message>& message)
+{
+  if(message->get_message_type() != Gst::MESSAGE_ELEMENT)
+  {
+    return;
+  }
+
+  if(!message->get_structure().has_name("prepare-xwindow-id"))
+  {
+    return;
+  }
+
+  Glib::RefPtr<Gst::Element> element = Glib::RefPtr<Gst::Element>::cast_dynamic(message->get_source());
+
+  Glib::RefPtr< Gst::ElementInterfaced<Gst::XOverlay> > xoverlay = Gst::Interface::cast <Gst::XOverlay>(element);
+
+  if(xoverlay)
+  {
+    const gulong x_window_id = GDK_WINDOW_XID(m_video_area.get_window()->gobj());
+    xoverlay->set_xwindow_id(x_window_id);
+  }
+}
+
+// Process asynchronous bus messages.
 bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::RefPtr<Gst::Message>& message)
 {
   switch(message->get_message_type())
@@ -263,6 +294,35 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
   }
 
   return true;
+}
+
+bool MainWindow::on_video_pad_got_buffer(const Glib::RefPtr<Gst::Pad>& pad, const Glib::RefPtr<Gst::MiniObject>& data)
+{
+  Glib::RefPtr<Gst::Buffer> buffer = Glib::RefPtr<Gst::Buffer>::cast_dynamic(data);
+
+  if(buffer)
+  {
+    int buffer_width;
+    int buffer_height;
+
+    Glib::RefPtr<Gst::Caps> caps = buffer->get_caps();
+
+    const Gst::Structure structure = caps->get_structure(0);
+    if(structure)
+    {
+      structure.get_field("width", buffer_width);
+      structure.get_field("height", buffer_height);
+    }
+
+    m_video_area.set_size_request(buffer_width, buffer_height);
+    resize(1, 1);
+    check_resize();
+  }
+
+  pad->remove_buffer_probe(m_pad_probe_id);
+  m_pad_probe_id = 0; // Clear probe id to indicate that it has been removed
+
+  return true; // Keep buffer in pipeline (do not throw away)
 }
 
 void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)

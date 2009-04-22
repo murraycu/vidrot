@@ -1,5 +1,11 @@
 2009-04-21  David King  <davidk@openismus.com>
 
+	* src/main_window.[cc|h]: Move separate preview window into
+	m_video_area widget. Code taken from gstreamermm media player
+	example.
+
+2009-04-21  David King  <davidk@openismus.com>
+
 	* src/main_window.[cc|h]: Preliminary preview support. Slows
 	encoding down to realtime and appears in separate window.
 

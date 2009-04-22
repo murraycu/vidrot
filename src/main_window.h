@@ -43,7 +43,9 @@ class MainWindow : public Gtk::Window
     void on_file_selected();
     void on_button_convert();
     void on_button_quit();
+    void on_bus_message_sync(const Glib::RefPtr<Gst::Message>& message);
     bool on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::RefPtr<Gst::Message>& message);
+    bool on_video_pad_got_buffer(const Glib::RefPtr<Gst::Pad>& pad, const Glib::RefPtr<Gst::MiniObject>& buffer);
     void on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad);
     void on_no_more_pads();
     bool on_convert_timeout();
@@ -80,6 +82,7 @@ class MainWindow : public Gtk::Window
     Glib::RefPtr<Gst::Element> m_element_mux;
     Glib::RefPtr<Gst::FileSink> m_element_sink;
     guint m_watch_id;
+    gulong m_pad_probe_id;
     sigc::connection m_timeout_connection;
 };
 
