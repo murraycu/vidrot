@@ -1,3 +1,10 @@
+2009-04-23  Murray Cumming  <murrayc@openismus.com>
+
+	* src/main_window.cc: on_bus_message(): Improve the debug output.
+	Fail if there is a Gst::MESSAGE_WARNING because I get a warning
+	that there is no encoder for some videos, which seems more like an
+	error to me.
+
 2009-04-22  David King  <davidk@openismus.com>
 
 	* vidrot.doap: Basic DOAP file.

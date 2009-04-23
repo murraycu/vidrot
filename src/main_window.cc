@@ -184,10 +184,12 @@ void MainWindow::on_file_selected()
   m_element_source->set_state(Gst::STATE_NULL);
   m_element_source->set_property("uri", uri);
   m_element_source->set_state(Gst::STATE_PAUSED);
+
   // TODO: Write to same file.
   m_element_sink->set_uri(uri + ".new");
   m_button_convert.set_sensitive();
   m_progress_convert.set_fraction(0.0);
+
   // Set preview size to 0, add probe so that first buffer sets preview size.
   m_video_area.set_size_request(0, 0);
   m_pad_probe_id = m_video_preview->get_static_pad("sink")->add_buffer_probe(sigc::mem_fun(*this, &MainWindow::on_video_pad_got_buffer));
@@ -284,12 +286,26 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
         }
         else
         {
-          std::cerr << _("Undefined state change.") << std::endl;
+          std::cerr << _("Unexpected state change: ") << message_statechange->parse() << std::endl;
+        }
+        break;
+      }
+    case Gst::MESSAGE_WARNING:
+      {
+        // For instance: "No decoder available for type ..."
+        // TODO: Show with a dialog.
+        // TODO: Eventually use the encoder/decoder installer helper thingy used by totem and others.
+        Glib::RefPtr<Gst::MessageWarning> message_warning = Glib::RefPtr<Gst::MessageWarning>::cast_dynamic(message);
+        if(message_warning)
+        {
+          const Glib::Error error = message_warning->parse();
+          std::cout << _("Gstreamer Warning: ") << error.what() << std::endl;
+          return false; //These warnings seem to be errors.
         }
         break;
       }
     default:
-      std::cerr << _("Unhandled message on bus.") << std::endl;
+      std::cerr << _("Unhandled message on bus: ") << Gst::Enums::get_name(message->get_message_type()) << std::endl;
       break;
   }
 
