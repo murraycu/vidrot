@@ -28,6 +28,7 @@
 #include <gstreamermm/queue.h>
 #include <gstreamermm/tee.h>
 #include <gstreamermm/typefindelement.h>
+#include <gstreamermm/videoscale.h>
 #include <gstreamermm/ximagesink.h>
 #include <iostream>
 #include <config.h>
@@ -45,7 +46,7 @@ class MainWindow : public Gtk::Window
     void on_button_quit();
     void on_bus_message_sync(const Glib::RefPtr<Gst::Message>& message);
     bool on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::RefPtr<Gst::Message>& message);
-    bool on_video_pad_got_buffer(const Glib::RefPtr<Gst::Pad>& pad, const Glib::RefPtr<Gst::MiniObject>& buffer);
+    bool on_video_pad_got_buffer(const Glib::RefPtr<Gst::Pad>& pad, const Glib::RefPtr<Gst::MiniObject>& data);
     void on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad);
     void on_no_more_pads();
     bool on_convert_timeout();
@@ -70,6 +71,7 @@ class MainWindow : public Gtk::Window
     Glib::RefPtr<Gst::Queue> m_queue_audio;
     Glib::RefPtr<Gst::Queue> m_queue_preview;
     Glib::RefPtr<Gst::Tee> m_tee_video;
+    Glib::RefPtr<Gst::VideoScale> m_scale_preview;
     Glib::RefPtr<Gst::XImageSink> m_video_preview;
     Glib::RefPtr<Gst::Element> m_cspace_preview;
     Glib::RefPtr<Gst::Element> m_element_source;

@@ -4,18 +4,24 @@ Implemented features
 * Converts from any audio + video source supported by Gstreamer to mpeg2/mp3 in AVI output
 * Rotates video clockwise or anticlockwise, depending on user selection
 * i18n
+* Preview support
 
-TODO
+TODO (0.1 release)
 ----
 
-* Preview support
-** Updating preview with selected operations from UI
-* Estimate completion time in progress bar
+* gst_missing_plugin_message_get_installer_detail() support, e.g. if there is no decoder for the source video
+* Update preview with selected operations from UI
+** Only show single frame in preview, not progress of stream
 * Graceful error handling (dialogs or logfile?)
 * Remuxing support (when possible, i.e. only with audio)
 ** This will mean that audio (which cannot be rotated) does not need to be recompressed, just taken from the demuxed input and remuxed with the (rotated) video at the end of the pipeline
 ** Will also allow rotation while keeping the same container/muxer as the source video
 ** Video must be recompressed, as filters are applied to the raw video stream only
+
+TODO (post-0.1 release)
+-----------------------
+
+* Estimate completion time in progress bar
 * Ability to choose output container/codecs based on profiles (Flickr, ...)
 ** Only display codecs for which support is available
 ** "As-is" profile for same codec and container as source video

@@ -75,6 +75,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_tee_video = Gst::Tee::create("video-tee");
   m_cspace_preview = Gst::ElementFactory::create_element("ffmpegcolorspace", "preview-cspace");
   g_assert(m_cspace_preview);
+  m_scale_preview = Gst::VideoScale::create("preview-videoscale");
   m_video_preview = Gst::XImageSink::create("video-preview");
   g_assert(m_video_preview);
 
@@ -101,7 +102,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   try
   {
     pipeline->add(m_bin_video)->add(m_bin_audio)->add(m_element_source)->add(m_element_mux)->add(m_element_sink);
-    m_bin_video->add(m_element_colorspace)->add(m_element_filter)->add(m_element_vidrate)->add(m_tee_video)->add(m_queue_preview)->add(m_cspace_preview)->add(m_video_preview)->add(m_element_vidcomp)->add(m_queue_video);
+    m_bin_video->add(m_element_colorspace)->add(m_element_filter)->add(m_element_vidrate)->add(m_tee_video)->add(m_queue_preview)->add(m_cspace_preview)->add(m_scale_preview)->add(m_video_preview)->add(m_element_vidcomp)->add(m_queue_video);
     m_bin_audio->add(m_element_audconvert)->add(m_element_audcomp)->add(m_queue_audio);
   }
   catch(const std::runtime_error& error)
@@ -124,7 +125,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
     Glib::RefPtr<Gst::Pad> pad_tee_source = m_tee_video->get_request_pad("src%d");
     Glib::RefPtr<Gst::Pad> pad_queue_sink = m_queue_preview->get_static_pad("sink");
     pad_tee_source->link(pad_queue_sink);
-    m_queue_preview->link(m_cspace_preview)->link(m_video_preview);
+    m_queue_preview->link(m_cspace_preview)->link(m_scale_preview)->link(m_video_preview);
 
     // Ghost pad setup for audio and video bins.
     Glib::RefPtr<Gst::Pad> bin_audio_sink = m_element_audconvert->get_static_pad("sink");
@@ -167,6 +168,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
 
   m_pipeline = pipeline;
 
+  set_default_size(200, 300);
   show_all_children();
 }
 
@@ -312,14 +314,15 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
   return true;
 }
 
+// Resize the video preview widget on receiving the first decoded buffer.
 bool MainWindow::on_video_pad_got_buffer(const Glib::RefPtr<Gst::Pad>& pad, const Glib::RefPtr<Gst::MiniObject>& data)
 {
   Glib::RefPtr<Gst::Buffer> buffer = Glib::RefPtr<Gst::Buffer>::cast_dynamic(data);
 
   if(buffer)
   {
-    int buffer_width;
-    int buffer_height;
+    int buffer_width = 0;
+    int buffer_height = 0;
 
     Glib::RefPtr<Gst::Caps> caps = buffer->get_caps();
 
@@ -330,7 +333,10 @@ bool MainWindow::on_video_pad_got_buffer(const Glib::RefPtr<Gst::Pad>& pad, cons
       structure.get_field("height", buffer_height);
     }
 
-    m_video_area.set_size_request(buffer_width, buffer_height);
+    const Gtk::Allocation allocation = m_video_area.get_allocation();
+    const float aspect_ratio = static_cast<float>(buffer_width) / buffer_height;
+
+    m_video_area.set_size_request(allocation.get_width(), allocation.get_width() / aspect_ratio);
     resize(1, 1);
     check_resize();
   }
