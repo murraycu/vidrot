@@ -11,4 +11,5 @@ src_vidrot_LDADD = $(VIDROT_LIBS)
 
 AM_CPPFLAGS = $(global_defs) $(VIDROT_CFLAGS) $(VIDROT_WARNINGS) $(MY_CFLAGS)
 
-EXTRA_DIST = build-aux/config.rpath
+EXTRA_DIST = build-aux/config.rpath \
+             vidrot.doap

@@ -333,6 +333,8 @@ bool MainWindow::on_video_pad_got_buffer(const Glib::RefPtr<Gst::Pad>& pad, cons
       structure.get_field("height", buffer_height);
     }
 
+    /* Constrain preview width to initial width. Set preview height based on
+       aspect ratio of video stream. */
     const Gtk::Allocation allocation = m_video_area.get_allocation();
     const float aspect_ratio = static_cast<float>(buffer_width) / buffer_height;
 

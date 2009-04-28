@@ -1,3 +1,17 @@
+2009-04-28  David King  <davidk@openismus.com>
+
+	* ChangeLog: Forgot to add ChangeLog in last commit.
+	* Makefile.am: Add vidrot.doap to EXTRA_DIST.
+	* src/main_window.cc: Comment preview size code.
+
+2009-04-28  David King  <davidk@openismus.com>
+
+	* TODO:
+	* src/main_window.[cc|h]: Add videoscale element to enable
+	scaling of the video preview. Initialize buffer_[width|height]
+	to 0 (noticed by Murray). Constrain preview widget to aspect
+	ratio of video stream.
+
 2009-04-23  Murray Cumming  <murrayc@openismus.com>
 
 	* src/main_window.cc: on_bus_message(): Improve the debug output.
