@@ -1,3 +1,10 @@
+2009-04-29  David King  <davidk@openismus.com>
+
+	* Makefile.am:
+	* src/main_window.h:
+	* src/vidrot_preview.[cc|h]: Add custom widget for preview
+	of videos. Currently, simply draws a black background.
+
 2009-04-28  David King  <davidk@openismus.com>
 
 	* ChangeLog: Forgot to add ChangeLog in last commit.

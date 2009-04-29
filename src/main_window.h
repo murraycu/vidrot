@@ -31,6 +31,8 @@
 #include <gstreamermm/videoscale.h>
 #include <gstreamermm/ximagesink.h>
 #include <iostream>
+#include <cstdlib>
+#include "vidrot_preview.h"
 #include <config.h>
 
 class MainWindow : public Gtk::Window
@@ -55,7 +57,7 @@ class MainWindow : public Gtk::Window
     Gtk::VBox m_vbox;
     Gtk::HButtonBox m_hbuttonbox;
     Gtk::FileChooserButton m_button_filechooser;
-    Gtk::DrawingArea m_video_area;
+    VidRotPreview m_video_area;
     Gtk::RadioButtonGroup m_radiogroup;
     Gtk::RadioButton m_radio_clockwise;
     Gtk::RadioButton m_radio_anticlockwise;
