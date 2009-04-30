@@ -21,14 +21,33 @@
 #include "vidrot_preview.h"
 
 VidRotPreview::VidRotPreview() :
-  Glib::ObjectBase("vidrot_preview"),
-  Gtk::Widget()
+  Gtk::Widget(),
+  m_video_width(0),
+  m_video_height(0)
 {
   set_flags(Gtk::NO_WINDOW);
 }
 
 VidRotPreview::~VidRotPreview()
 {
+}
+
+void VidRotPreview::set_aspect_ratio(unsigned int width, unsigned int height)
+{
+  m_video_width = width;
+  m_video_height = height;
+}
+
+float VidRotPreview::get_aspect_ratio()
+{
+  if(m_video_height > 0)
+  {
+    return static_cast<float>(m_video_width) / m_video_height;
+  }
+  else
+  {
+    return 0.0f;
+  }
 }
 
 void VidRotPreview::on_size_allocate(Gtk::Allocation& allocation)
@@ -58,7 +77,7 @@ void VidRotPreview::on_realize()
     GdkWindowAttr attributes;
     memset(&attributes, 0, sizeof(attributes));
 
-    Gtk::Allocation allocation = get_allocation();
+    const Gtk::Allocation allocation = get_allocation();
 
     attributes.x = allocation.get_x();
     attributes.y = allocation.get_y();
@@ -87,6 +106,39 @@ bool VidRotPreview::on_expose_event(GdkEventExpose* event)
   {
     Cairo::RefPtr<Cairo::Context> context = m_gdkwindow->create_cairo_context();
     context->paint();
+
+    if(get_aspect_ratio() > 0.0f)
+    {
+      const Gtk::Allocation allocation = get_allocation();
+      float ratio = 1.0f;
+
+      if(m_video_width > 0 && m_video_height > 0)
+      {
+        if(static_cast<float>(allocation.get_width()) / m_video_width > static_cast<float>(allocation.get_height()) / m_video_height)
+        {
+          ratio = static_cast<float>(allocation.get_height()) / m_video_height;
+        }
+        else
+        {
+          ratio = static_cast<float>(allocation.get_width()) / m_video_width;
+        }
+
+        unsigned int draw_width = m_video_width * ratio;
+        unsigned int draw_height = m_video_height * ratio;
+        unsigned int x = (allocation.get_width() - draw_width) / 2;
+        unsigned int y = (allocation.get_height() - draw_height) / 2;
+
+        // TODO: Layout preview corectly.
+        //m_gdkwindow->move_resize(x, y, draw_width, draw_height);
+        m_gdkwindow->move_resize(allocation.get_x(), allocation.get_y(), draw_width, draw_height);
+
+      }
+      else
+      {
+        return true;
+      }
+
+    }
   }
 
   return true;

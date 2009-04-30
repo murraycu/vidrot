@@ -1,3 +1,10 @@
+2009-04-30  David King  <davidk@openismus.com>
+
+	* src/vidrot_preview.[cc|h]: Add set_aspect_ratio() and
+	get_aspect_ratio() to set aspect ratio of video for preview.
+	Simply derive from Gtk::Widget, suggested by Daniel.
+	* src/main_window.cc: Use set_aspect_ratio().
+
 2009-04-29  David King  <davidk@openismus.com>
 
 	* Makefile.am:

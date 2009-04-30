@@ -27,6 +27,9 @@ class VidRotPreview : public Gtk::Widget
     VidRotPreview();
     virtual ~VidRotPreview();
 
+    void set_aspect_ratio(unsigned int width, unsigned int height);
+    float get_aspect_ratio();
+
   private:
     virtual void on_size_allocate(Gtk::Allocation& allocation);
     virtual void on_size_request(Gtk::Requisition* requisition);
@@ -35,6 +38,9 @@ class VidRotPreview : public Gtk::Widget
     virtual bool on_expose_event(GdkEventExpose* event);
 
     Glib::RefPtr<Gdk::Window> m_gdkwindow;
+
+    unsigned int m_video_width;
+    unsigned int m_video_height;
 };
 
 #endif /* _VIDROT_PREVIEW_H */
