@@ -1,3 +1,10 @@
+2009-05-01  Murray Cumming  <murrayc@murrayc.com>
+
+	Mention Debian/Ubuntu packages to install.
+
+	* README: Mention Debian/Ubuntu packages to install when building
+	gstreamer stuff from source, because it is not obvious and I forget.
+
 2009-04-30  David King  <davidk@openismus.com>
 
 	* src/vidrot_preview.[cc|h]: Add set_aspect_ratio() and

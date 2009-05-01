@@ -1,3 +1,18 @@
 VidRot
 
 A Gtkmm/GStreamermm application to rotate videos.
+
+== Dependencies:
+
+If you build gst-plugins-* from source:
+
+See gstreammermm's README about dependencies that you probably need for vidrot
+too when building gst-plugins-base.
+
+When building gst-plugins-ugly from source you'll need this installed,
+at least on Debian/Ubuntu:
+libmp3lame-dev.
+
+When building gst-plugins-bad from source you'll need these installed,
+at least on Debian/Ubuntu:
+libmp3lame-dev, libmjpegtools-dev.
