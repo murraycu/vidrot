@@ -34,6 +34,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_button_convert(Gtk::Stock::EXECUTE),
   m_button_quit(Gtk::Stock::QUIT),
   m_watch_id(0)
+  // time_remaining has no arguments for default consttuctor.
 {
   set_title(PACKAGE_STRING);
   set_border_width(12);
@@ -254,6 +255,7 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
       m_button_convert.set_sensitive();
       m_button_quit.set_sensitive();
       m_timeout_connection.disconnect();
+      time_remaining.stop();
       break;
     case Gst::MESSAGE_ERROR:
       {
@@ -267,6 +269,7 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
         {
           std::cerr << _("Undefined error.") << std::endl;
         }
+        m_progress_convert.set_text(_("Conversion error"));
         break;
       }
     case Gst::MESSAGE_STATE_CHANGED:
@@ -284,6 +287,9 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
             m_button_convert.set_sensitive(false);
             m_button_quit.set_sensitive(false);
             m_timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(*this, &MainWindow::on_convert_timeout), 200);
+
+            // Start timer to estimate remaining conversion time.
+            time_remaining.start();
           }
         }
         else
@@ -415,7 +421,11 @@ bool MainWindow::on_convert_timeout()
 
   if(m_pipeline->query_position(format, position) && m_pipeline->query_duration(format, duration))
   {
-    m_progress_convert.set_fraction(double(position) / duration);
+    double fraction = static_cast<double>(position) / duration;
+    m_progress_convert.set_fraction(fraction);
+    int seconds_remaining = time_remaining.elapsed() / fraction;
+    Glib::ustring conversion_status = Glib::ustring::compose("Time remaining: %1:%2", seconds_remaining / 60, seconds_remaining % 60);
+    m_progress_convert.set_text(conversion_status);
   }
 
   return true;

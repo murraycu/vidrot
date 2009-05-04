@@ -88,6 +88,7 @@ class MainWindow : public Gtk::Window
     guint m_watch_id;
     gulong m_pad_probe_id;
     sigc::connection m_timeout_connection;
+    Glib::Timer time_remaining;
 };
 
 #endif /* _MAINWINDOW_H */
