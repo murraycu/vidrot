@@ -51,6 +51,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   filter_any.set_name(_("All files"));
   filter_any.add_pattern("*");
   m_button_filechooser.add_filter(filter_any);
+  m_button_filechooser.set_current_folder(Glib::get_user_special_dir(G_USER_DIRECTORY_VIDEOS));
 
   // Attach signals to widgets.
   m_button_filechooser.signal_file_set().connect(sigc::mem_fun(*this, &MainWindow::on_file_selected));
