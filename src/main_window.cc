@@ -36,9 +36,134 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_watch_id(0)
   // time_remaining has no arguments for default consttuctor.
 {
+  m_pipeline = pipeline;
+
   set_title(PACKAGE_STRING);
   set_border_width(12);
 
+  // Call helper functions to setup Gstreamermm pipeline and Gtkmm widgets.
+  create_elements();
+  link_elements();
+  setup_widgets();
+
+  set_default_size(200, 300);
+  show_all_children();
+}
+
+MainWindow::~MainWindow()
+{
+  m_pipeline->get_bus()->remove_watch(m_watch_id);
+  m_pipeline->set_state(Gst::STATE_NULL);
+}
+
+// Create Gstreamermm elements and add to pipeline or bin.
+void MainWindow::create_elements()
+{
+  // Attach watcher to message bus.
+  Glib::RefPtr<Gst::Bus> bus = m_pipeline->get_bus();
+  bus->enable_sync_message_emission();
+  bus->signal_sync_message().connect(sigc::mem_fun(*this, &MainWindow::on_bus_message_sync));
+  m_watch_id = bus->add_watch(sigc::mem_fun(*this, &MainWindow::on_bus_message));
+
+  // Create Bins for audio and video filtering.
+  m_bin_video = Gst::Bin::create("video-bin");
+  g_assert(m_bin_video);
+  m_pipeline->add(m_bin_video);
+  m_bin_audio = Gst::Bin::create("audio-bin");
+  g_assert(m_bin_audio);
+  m_pipeline->add(m_bin_audio);
+
+  // Create Queue elements.
+  m_queue_video = Gst::Queue::create("video-queue");
+  g_assert(m_queue_video);
+  m_bin_video->add(m_queue_video);
+  m_queue_audio = Gst::Queue::create("audio-queue");
+  g_assert(m_queue_audio);
+  m_bin_audio->add(m_queue_audio);
+  m_queue_preview = Gst::Queue::create("preview-queue");
+  g_assert(m_queue_preview);
+  m_bin_video->add(m_queue_preview);
+
+  // Tee element for video preview.
+  m_tee_video = Gst::Tee::create("video-tee");
+  g_assert(m_tee_video);
+  m_bin_video->add(m_tee_video);
+  m_cspace_preview = Gst::ElementFactory::create_element("ffmpegcolorspace", "preview-cspace");
+  g_assert(m_cspace_preview);
+  m_bin_video->add(m_cspace_preview);
+  m_scale_preview = Gst::VideoScale::create("preview-videoscale");
+  g_assert(m_scale_preview);
+  m_bin_video->add(m_scale_preview);
+  m_video_preview = Gst::XImageSink::create("video-preview");
+  g_assert(m_video_preview);
+  m_bin_video->add(m_video_preview);
+
+  // Create elements using ElementFactory.
+  m_element_source = Gst::ElementFactory::create_element("uridecodebin", "uri-source");
+  g_assert(m_element_source);
+  m_pipeline->add(m_element_source);
+  m_element_colorspace = Gst::ElementFactory::create_element("ffmpegcolorspace", "vid-colorspace");
+  g_assert(m_element_colorspace);
+  m_bin_video->add(m_element_colorspace);
+  m_element_audconvert = Gst::ElementFactory::create_element("audioconvert", "aud-convert");
+  g_assert(m_element_audconvert);
+  m_bin_audio->add(m_element_audconvert);
+  m_element_audcomp = Gst::ElementFactory::create_element("lame", "audcomp-element");
+  g_assert(m_element_audcomp);
+  m_bin_audio->add(m_element_audcomp);
+  m_element_filter = Gst::ElementFactory::create_element("videoflip", "filter-element");
+  g_assert(m_element_filter);
+  m_bin_video->add(m_element_filter);
+  m_element_vidrate = Gst::ElementFactory::create_element("videorate", "vidrate");
+  g_assert(m_element_vidrate);
+  m_bin_video->add(m_element_vidrate);
+  m_element_vidcomp = Gst::ElementFactory::create_element("mpeg2enc", "vidcomp-element");
+  g_assert(m_element_vidcomp);
+  m_bin_video->add(m_element_vidcomp);
+  m_element_mux = Gst::ElementFactory::create_element("avimux", "mux-element");
+  g_assert(m_element_mux);
+  m_pipeline->add(m_element_mux);
+  m_element_sink = Gst::FileSink::create("file-sink");
+  g_assert(m_element_sink);
+  m_pipeline->add(m_element_sink);
+}
+
+// Link pipeline elements together.
+void MainWindow::link_elements()
+{
+  // Dynamically link uridecodebin to audio and video processing bins.
+  m_element_source->signal_pad_added().connect(sigc::mem_fun(*this, &MainWindow::on_decode_pad_added));
+  m_element_source->signal_no_more_pads().connect(sigc::mem_fun(*this, &MainWindow::on_no_more_pads));
+
+  // Must link decode to filter after stream has been identified.
+  // What happens if there is no audio stream?
+  m_element_colorspace->link(m_element_filter)->link(m_element_vidrate)->link(m_tee_video)->link(m_element_vidcomp)->link(m_queue_video);
+  m_element_audconvert->link(m_element_audcomp)->link(m_queue_audio);
+
+  // Get request pad to link tee element to video preview element.
+  Glib::RefPtr<Gst::Pad> pad_tee_source = m_tee_video->get_request_pad("src%d");
+  Glib::RefPtr<Gst::Pad> pad_queue_sink = m_queue_preview->get_static_pad("sink");
+  pad_tee_source->link(pad_queue_sink);
+  m_queue_preview->link(m_cspace_preview)->link(m_scale_preview)->link(m_video_preview);
+
+  // Ghost pad setup for audio and video bins.
+  Glib::RefPtr<Gst::Pad> bin_audio_sink = m_element_audconvert->get_static_pad("sink");
+  m_bin_audio->add_pad(Gst::GhostPad::create("audsink", bin_audio_sink));
+  Glib::RefPtr<Gst::Pad> bin_audio_src = m_queue_audio->get_static_pad("src");
+  m_bin_audio->add_pad(Gst::GhostPad::create("audsrc", bin_audio_src));
+  Glib::RefPtr<Gst::Pad> bin_video_sink = m_element_colorspace->get_static_pad("sink");
+  m_bin_video->add_pad(Gst::GhostPad::create("vidsink", bin_video_sink));
+  Glib::RefPtr<Gst::Pad> bin_video_src = m_queue_video->get_static_pad("src");
+  m_bin_video->add_pad(Gst::GhostPad::create("vidsrc", bin_video_src));
+
+  // Link bin src pads to AVI muxer.
+  m_bin_video->link(m_element_mux);
+  m_bin_audio->link(m_element_mux);
+  m_element_mux->link(m_element_sink);
+}
+
+void MainWindow::setup_widgets()
+{
   // Cannot convert if a file is not selected.
   m_button_convert.set_sensitive(false);
 
@@ -58,97 +183,6 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_button_convert.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_convert));
   m_button_quit.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_quit));
 
-  // Attach watcher to message bus.
-  Glib::RefPtr<Gst::Bus> bus = pipeline->get_bus();
-  bus->enable_sync_message_emission();
-  bus->signal_sync_message().connect(sigc::mem_fun(*this, &MainWindow::on_bus_message_sync));
-  m_watch_id = bus->add_watch(sigc::mem_fun(*this, &MainWindow::on_bus_message));
-
-  // Create Bins for audio and video filtering.
-  m_bin_video = Gst::Bin::create("video-bin");
-  m_bin_audio = Gst::Bin::create("audio-bin");
-
-  // Create Queue elements.
-  m_queue_video = Gst::Queue::create("video-queue");
-  m_queue_audio = Gst::Queue::create("audio-queue");
-  m_queue_preview = Gst::Queue::create("preview-queue");
-
-  // Tee element for video preview.
-  m_tee_video = Gst::Tee::create("video-tee");
-  m_cspace_preview = Gst::ElementFactory::create_element("ffmpegcolorspace", "preview-cspace");
-  g_assert(m_cspace_preview);
-  m_scale_preview = Gst::VideoScale::create("preview-videoscale");
-  m_video_preview = Gst::XImageSink::create("video-preview");
-  g_assert(m_video_preview);
-
-  // Create elements using ElementFactory.
-  m_element_source = Gst::ElementFactory::create_element("uridecodebin", "uri-source");
-  g_assert(m_element_source);
-  m_element_colorspace = Gst::ElementFactory::create_element("ffmpegcolorspace", "vid-colorspace");
-  g_assert(m_element_colorspace);
-  m_element_audconvert = Gst::ElementFactory::create_element("audioconvert", "aud-convert");
-  g_assert(m_element_audconvert);
-  m_element_audcomp = Gst::ElementFactory::create_element("lame", "audcomp-element");
-  g_assert(m_element_audcomp);
-  m_element_filter = Gst::ElementFactory::create_element("videoflip", "filter-element");
-  g_assert(m_element_filter);
-  m_element_vidrate = Gst::ElementFactory::create_element("videorate", "vidrate");
-  g_assert(m_element_vidrate);
-  m_element_vidcomp = Gst::ElementFactory::create_element("mpeg2enc", "vidcomp-element");
-  g_assert(m_element_vidcomp);
-  m_element_mux = Gst::ElementFactory::create_element("avimux", "mux-element");
-  g_assert(m_element_mux);
-  m_element_sink = Gst::FileSink::create("file-sink");
-
-  // Add elements to pipeline (before linking together).
-  try
-  {
-    pipeline->add(m_bin_video)->add(m_bin_audio)->add(m_element_source)->add(m_element_mux)->add(m_element_sink);
-    m_bin_video->add(m_element_colorspace)->add(m_element_filter)->add(m_element_vidrate)->add(m_tee_video)->add(m_queue_preview)->add(m_cspace_preview)->add(m_scale_preview)->add(m_video_preview)->add(m_element_vidcomp)->add(m_queue_video);
-    m_bin_audio->add(m_element_audconvert)->add(m_element_audcomp)->add(m_queue_audio);
-  }
-  catch(const std::runtime_error& error)
-  {
-    std::cerr << _("Exception while adding elements: ") << error.what() << std::endl;
-  }
-
-  // Dynamically link uridecodebin to audio and video processing bins.
-  m_element_source->signal_pad_added().connect(sigc::mem_fun(*this, &MainWindow::on_decode_pad_added));
-  m_element_source->signal_no_more_pads().connect(sigc::mem_fun(*this, &MainWindow::on_no_more_pads));
-
-  // Must link decode to filter after stream has been identified.
-  // What happens if there is no audio stream?
-  try
-  {
-    m_element_colorspace->link(m_element_filter)->link(m_element_vidrate)->link(m_tee_video)->link(m_element_vidcomp)->link(m_queue_video);
-    m_element_audconvert->link(m_element_audcomp)->link(m_queue_audio);
-
-    // Get request pad to link tee element to video preview element.
-    Glib::RefPtr<Gst::Pad> pad_tee_source = m_tee_video->get_request_pad("src%d");
-    Glib::RefPtr<Gst::Pad> pad_queue_sink = m_queue_preview->get_static_pad("sink");
-    pad_tee_source->link(pad_queue_sink);
-    m_queue_preview->link(m_cspace_preview)->link(m_scale_preview)->link(m_video_preview);
-
-    // Ghost pad setup for audio and video bins.
-    Glib::RefPtr<Gst::Pad> bin_audio_sink = m_element_audconvert->get_static_pad("sink");
-    m_bin_audio->add_pad(Gst::GhostPad::create("audsink", bin_audio_sink));
-    Glib::RefPtr<Gst::Pad> bin_audio_src = m_queue_audio->get_static_pad("src");
-    m_bin_audio->add_pad(Gst::GhostPad::create("audsrc", bin_audio_src));
-    Glib::RefPtr<Gst::Pad> bin_video_sink = m_element_colorspace->get_static_pad("sink");
-    m_bin_video->add_pad(Gst::GhostPad::create("vidsink", bin_video_sink));
-    Glib::RefPtr<Gst::Pad> bin_video_src = m_queue_video->get_static_pad("src");
-    m_bin_video->add_pad(Gst::GhostPad::create("vidsrc", bin_video_src));
-
-    // Link bin src pads to AVI muxer.
-    m_bin_video->link(m_element_mux);
-    m_bin_audio->link(m_element_mux);
-    m_element_mux->link(m_element_sink);
-  }
-  catch(const std::runtime_error& error)
-  {
-    std::cerr << _("Exception while linking elements: ") << error.what() << std::endl;
-  }
-
   // Set tooltips.
   m_button_filechooser.set_tooltip_text(_("Select a video to rotate"));
   m_radio_anticlockwise.set_tooltip_text(_("Rotate the video anticlockwise by 90°"));
@@ -166,18 +200,8 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_hbuttonbox.pack_start(m_button_convert);
   m_hbuttonbox.pack_start(m_button_quit);
   m_vbox.pack_start(m_hbuttonbox, Gtk::PACK_SHRINK);
+
   add(m_vbox);
-
-  m_pipeline = pipeline;
-
-  set_default_size(200, 300);
-  show_all_children();
-}
-
-MainWindow::~MainWindow()
-{
-  m_pipeline->get_bus()->remove_watch(m_watch_id);
-  m_pipeline->set_state(Gst::STATE_NULL);
 }
 
 void MainWindow::on_file_selected()

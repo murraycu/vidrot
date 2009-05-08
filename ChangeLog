@@ -1,3 +1,10 @@
+2009-05-08  David King  <davidk@openismus.com>
+
+	* src/main_window.[cc|h]: Remove try...catch blocks, as
+	there is no error-handling if an exception is caught.
+	Rearrange constructor into separate helper functions.
+	* TODO: Update to reflect time remaining estimation.
+
 2009-05-04  David King  <davidk@openismus.com>
 
 	* src/main_window.cc: Set default directory for FileChooser

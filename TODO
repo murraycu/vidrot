@@ -5,6 +5,7 @@ Implemented features
 * Rotates video clockwise or anticlockwise, depending on user selection
 * i18n
 * Preview support
+* Estimate completion time in progress bar
 
 TODO (0.1 release)
 ----
@@ -21,7 +22,6 @@ TODO (0.1 release)
 TODO (post-0.1 release)
 -----------------------
 
-* Estimate completion time in progress bar
 * Ability to choose output container/codecs based on profiles (Flickr, ...)
 ** Only display codecs for which support is available
 ** "As-is" profile for same codec and container as source video

@@ -42,6 +42,10 @@ class MainWindow : public Gtk::Window
     virtual ~MainWindow();
 
   private:
+    void create_elements();
+    void link_elements();
+    void setup_widgets();
+
     // Signal handlers.
     void on_file_selected();
     void on_button_convert();
