@@ -4,6 +4,11 @@ A Gtkmm/GStreamermm application to rotate videos.
 
 == Dependencies:
 
+Depending on Linux distribution, certain codecs may not be installed
+automatically. For example, Ubuntu users should read
+http://ubuntuforums.org/showthread.php?t=1117283 for information on installing
+restricted (by software aptents or otherwise) codecs.
+
 If you build gst-plugins-* from source:
 
 See gstreammermm's README about dependencies that you probably need for vidrot

@@ -1,3 +1,7 @@
+2009-05-11  David King  <davidk@openismus.com>
+
+	* README: Mention restricted codecs in Ubuntu.
+
 2009-05-08  David King  <davidk@openismus.com>
 
 	* src/main_window.[cc|h]: Remove try...catch blocks, as
