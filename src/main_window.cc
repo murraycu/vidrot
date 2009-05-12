@@ -215,7 +215,7 @@ void MainWindow::on_button_quit()
 }
 
 // Process asynchronous bus messages.
-bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::RefPtr<Gst::Message>& message)
+bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */, const Glib::RefPtr<Gst::Message>& message)
 {
   switch(message->get_message_type())
   {

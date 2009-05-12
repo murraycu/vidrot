@@ -100,7 +100,7 @@ void VidRotPreview::on_unrealize()
   Gtk::Widget::on_unrealize();
 }
 
-bool VidRotPreview::on_expose_event(GdkEventExpose* event)
+bool VidRotPreview::on_expose_event(GdkEventExpose* /* event */)
 {
   if(m_gdkwindow)
   {
@@ -125,8 +125,8 @@ bool VidRotPreview::on_expose_event(GdkEventExpose* event)
 
         unsigned int draw_width = m_video_width * ratio;
         unsigned int draw_height = m_video_height * ratio;
-        unsigned int x = (allocation.get_width() - draw_width) / 2;
-        unsigned int y = (allocation.get_height() - draw_height) / 2;
+        //unsigned int x = (allocation.get_width() - draw_width) / 2;
+        //unsigned int y = (allocation.get_height() - draw_height) / 2;
 
         // TODO: Layout preview corectly.
         //m_gdkwindow->move_resize(x, y, draw_width, draw_height);

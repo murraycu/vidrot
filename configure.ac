@@ -1,5 +1,5 @@
 AC_INIT([VidRot], [0.1], [davidk@openismus.com], [vidrot])
-AC_CONFIG_AUX_DIR([build-aux])
+# AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/vidrot.cc])
 AC_PREREQ([2.57])
@@ -36,7 +36,7 @@ AC_LANG([C++])
 
 DK_ARG_ENABLE_WARNINGS([VIDROT_WARNINGS],
         [-Wall],
-        [-pedantic -Wall -Wextra])
+        [-Wall -Wextra])
 
 AC_CONFIG_FILES([Makefile po/Makefile.in])
 AC_OUTPUT

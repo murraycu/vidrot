@@ -1,5 +1,14 @@
 2009-05-12  David King  <davidk@openismus.com>
 
+	* configure.ac: Don't define AC_CONFIG_AUX_DIR as it's not
+	needed. Remove -pedantic from fatal warning flags as variadic
+	macros (used in GStreamer) are not available in C++.
+	* Makefile.am: Don't distribute auxilliary config files.
+	* src/main_window.cc:
+	* src/vidrot_preview.cc: Remove unused function arguments.
+
+2009-05-12  David King  <davidk@openismus.com>
+
 	* data/vidrot_logo.png: Add simple logo, copied from Totem.
 	* src/main_window.[cc|h]: Remove preview support from GStreamer
 	pipeline, in preperation for adding static preview.
