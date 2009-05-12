@@ -1,3 +1,9 @@
+2009-05-12  David King  <davidk@openismus.com>
+
+	* data/vidrot_logo.png: Add simple logo, copied from Totem.
+	* src/main_window.[cc|h]: Remove preview support from GStreamer
+	pipeline, in preperation for adding static preview.
+
 2009-05-11  David King  <davidk@openismus.com>
 
 	* README: Mention restricted codecs in Ubuntu.

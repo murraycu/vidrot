@@ -34,7 +34,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_button_convert(Gtk::Stock::EXECUTE),
   m_button_quit(Gtk::Stock::QUIT),
   m_watch_id(0)
-  // time_remaining has no arguments for default consttuctor.
+  // time_remaining has no arguments for default constructor.
 {
   m_pipeline = pipeline;
 
@@ -61,8 +61,6 @@ void MainWindow::create_elements()
 {
   // Attach watcher to message bus.
   Glib::RefPtr<Gst::Bus> bus = m_pipeline->get_bus();
-  bus->enable_sync_message_emission();
-  bus->signal_sync_message().connect(sigc::mem_fun(*this, &MainWindow::on_bus_message_sync));
   m_watch_id = bus->add_watch(sigc::mem_fun(*this, &MainWindow::on_bus_message));
 
   // Create Bins for audio and video filtering.
@@ -80,23 +78,6 @@ void MainWindow::create_elements()
   m_queue_audio = Gst::Queue::create("audio-queue");
   g_assert(m_queue_audio);
   m_bin_audio->add(m_queue_audio);
-  m_queue_preview = Gst::Queue::create("preview-queue");
-  g_assert(m_queue_preview);
-  m_bin_video->add(m_queue_preview);
-
-  // Tee element for video preview.
-  m_tee_video = Gst::Tee::create("video-tee");
-  g_assert(m_tee_video);
-  m_bin_video->add(m_tee_video);
-  m_cspace_preview = Gst::ElementFactory::create_element("ffmpegcolorspace", "preview-cspace");
-  g_assert(m_cspace_preview);
-  m_bin_video->add(m_cspace_preview);
-  m_scale_preview = Gst::VideoScale::create("preview-videoscale");
-  g_assert(m_scale_preview);
-  m_bin_video->add(m_scale_preview);
-  m_video_preview = Gst::XImageSink::create("video-preview");
-  g_assert(m_video_preview);
-  m_bin_video->add(m_video_preview);
 
   // Create elements using ElementFactory.
   m_element_source = Gst::ElementFactory::create_element("uridecodebin", "uri-source");
@@ -137,14 +118,8 @@ void MainWindow::link_elements()
 
   // Must link decode to filter after stream has been identified.
   // What happens if there is no audio stream?
-  m_element_colorspace->link(m_element_filter)->link(m_element_vidrate)->link(m_tee_video)->link(m_element_vidcomp)->link(m_queue_video);
+  m_element_colorspace->link(m_element_filter)->link(m_element_vidrate)->link(m_element_vidcomp)->link(m_queue_video);
   m_element_audconvert->link(m_element_audcomp)->link(m_queue_audio);
-
-  // Get request pad to link tee element to video preview element.
-  Glib::RefPtr<Gst::Pad> pad_tee_source = m_tee_video->get_request_pad("src%d");
-  Glib::RefPtr<Gst::Pad> pad_queue_sink = m_queue_preview->get_static_pad("sink");
-  pad_tee_source->link(pad_queue_sink);
-  m_queue_preview->link(m_cspace_preview)->link(m_scale_preview)->link(m_video_preview);
 
   // Ghost pad setup for audio and video bins.
   Glib::RefPtr<Gst::Pad> bin_audio_sink = m_element_audconvert->get_static_pad("sink");
@@ -220,7 +195,6 @@ void MainWindow::on_file_selected()
 
   // Set preview size to 0, add probe so that first buffer sets preview size.
   m_video_area.set_size_request(0, 0);
-  m_pad_probe_id = m_video_preview->get_static_pad("sink")->add_buffer_probe(sigc::mem_fun(*this, &MainWindow::on_video_pad_got_buffer));
 }
 
 void MainWindow::on_button_convert()
@@ -238,30 +212,6 @@ void MainWindow::on_button_quit()
   this->hide();
 
   return;
-}
-
-// Process synchronous bus messages.
-void MainWindow::on_bus_message_sync(const Glib::RefPtr<Gst::Message>& message)
-{
-  if(message->get_message_type() != Gst::MESSAGE_ELEMENT)
-  {
-    return;
-  }
-
-  if(!message->get_structure().has_name("prepare-xwindow-id"))
-  {
-    return;
-  }
-
-  Glib::RefPtr<Gst::Element> element = Glib::RefPtr<Gst::Element>::cast_dynamic(message->get_source());
-
-  Glib::RefPtr< Gst::ElementInterfaced<Gst::XOverlay> > xoverlay = Gst::Interface::cast <Gst::XOverlay>(element);
-
-  if(xoverlay)
-  {
-    const gulong x_window_id = GDK_WINDOW_XID(m_video_area.get_window()->gobj());
-    xoverlay->set_xwindow_id(x_window_id);
-  }
 }
 
 // Process asynchronous bus messages.
@@ -343,42 +293,6 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::R
   }
 
   return true;
-}
-
-// Resize the video preview widget on receiving the first decoded buffer.
-bool MainWindow::on_video_pad_got_buffer(const Glib::RefPtr<Gst::Pad>& pad, const Glib::RefPtr<Gst::MiniObject>& data)
-{
-  Glib::RefPtr<Gst::Buffer> buffer = Glib::RefPtr<Gst::Buffer>::cast_dynamic(data);
-
-  if(buffer)
-  {
-    int buffer_width = 0;
-    int buffer_height = 0;
-
-    Glib::RefPtr<Gst::Caps> caps = buffer->get_caps();
-
-    const Gst::Structure structure = caps->get_structure(0);
-    if(structure)
-    {
-      structure.get_field("width", buffer_width);
-      structure.get_field("height", buffer_height);
-      m_video_area.set_aspect_ratio(buffer_width, buffer_height);
-    }
-
-    /* Constrain preview width to initial width. Set preview height based on
-       aspect ratio of video stream. */
-/*    const Gtk::Allocation allocation = m_video_area.get_allocation();
-    const float aspect_ratio = static_cast<float>(buffer_width) / buffer_height;
-
-    m_video_area.set_size_request(allocation.get_width(), allocation.get_width() / aspect_ratio);
-    resize(1, 1);
-    check_resize();*/
-  }
-
-  pad->remove_buffer_probe(m_pad_probe_id);
-  m_pad_probe_id = 0; // Clear probe id to indicate that it has been removed
-
-  return true; // Keep buffer in pipeline (do not throw away)
 }
 
 void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)

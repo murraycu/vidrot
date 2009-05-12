@@ -50,9 +50,7 @@ class MainWindow : public Gtk::Window
     void on_file_selected();
     void on_button_convert();
     void on_button_quit();
-    void on_bus_message_sync(const Glib::RefPtr<Gst::Message>& message);
     bool on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::RefPtr<Gst::Message>& message);
-    bool on_video_pad_got_buffer(const Glib::RefPtr<Gst::Pad>& pad, const Glib::RefPtr<Gst::MiniObject>& data);
     void on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad);
     void on_no_more_pads();
     bool on_convert_timeout();
@@ -75,11 +73,6 @@ class MainWindow : public Gtk::Window
     Glib::RefPtr<Gst::Bin> m_bin_audio;
     Glib::RefPtr<Gst::Queue> m_queue_video;
     Glib::RefPtr<Gst::Queue> m_queue_audio;
-    Glib::RefPtr<Gst::Queue> m_queue_preview;
-    Glib::RefPtr<Gst::Tee> m_tee_video;
-    Glib::RefPtr<Gst::VideoScale> m_scale_preview;
-    Glib::RefPtr<Gst::XImageSink> m_video_preview;
-    Glib::RefPtr<Gst::Element> m_cspace_preview;
     Glib::RefPtr<Gst::Element> m_element_source;
     Glib::RefPtr<Gst::Element> m_element_colorspace;
     Glib::RefPtr<Gst::Element> m_element_audconvert;
@@ -90,7 +83,8 @@ class MainWindow : public Gtk::Window
     Glib::RefPtr<Gst::Element> m_element_mux;
     Glib::RefPtr<Gst::FileSink> m_element_sink;
     guint m_watch_id;
-    gulong m_pad_probe_id;
+
+    // Other internal state.
     sigc::connection m_timeout_connection;
     Glib::Timer time_remaining;
 };
