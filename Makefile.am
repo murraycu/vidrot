@@ -6,7 +6,7 @@ SUBDIRS = po
 global_defs = -DLOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\"
 
 bin_PROGRAMS = src/vidrot
-src_vidrot_SOURCES = src/vidrot.cc src/main_window.cc src/main_window.h src/vidrot_preview.cc src/vidrot_preview.h
+src_vidrot_SOURCES = src/main.cc src/main_window.cc src/main_window.h src/vidrot_preview.cc src/vidrot_preview.h
 src_vidrot_LDADD = $(VIDROT_LIBS)
 
 AM_CPPFLAGS = $(global_defs) $(VIDROT_CFLAGS) $(VIDROT_WARNINGS) $(MY_CFLAGS)

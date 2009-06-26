@@ -1,5 +1,10 @@
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
+	* Makefile.am:
+	* src/vidrot.cc: Renamed to src/main.cc, because I find that clearer.
+
+2009-06-26  Murray Cumming  <murrayc@murrayc.com>
+
 	Try to use the gstreamer missing-plugin system.
 
 	* configure.ac: Depend on gstreamer-pbutils-0.10 (from gst-plugins-base).
