@@ -19,6 +19,7 @@
 #include "main_window.h"
 #include <gtkmm.h>
 #include <gstreamermm.h>
+#include <gst/pbutils/missing-plugins.h> //For gst_missing_plugin_message_get_description().
 #include <gdk/gdkx.h>
 #include <glibmm/i18n.h>
 #include <iostream>
@@ -296,14 +297,44 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */, const G
         Glib::RefPtr<Gst::MessageWarning> message_warning = Glib::RefPtr<Gst::MessageWarning>::cast_dynamic(message);
         if(message_warning)
         {
+          //TODO: This can contain a message about "no decoder available",
+          //but we would need a GST_MESSAGE_ELEMENT to call
+          //gst_missing_plugin_message_get_description() to discover what is
+          //actually missing.
           const Glib::Error error = message_warning->parse();
-          std::cout << _("Gstreamer Warning: ") << error.what() << std::endl;
+          std::cout << _("Gstreamer warning: ") << error.what() << std::endl;
+
+          if(gst_is_missing_plugin_message(message_warning->gobj()))
+          {
+            std::cout << "debug: Is Missing Plugin message" << std::endl;
+          }
+          else
+          {
+            std::cout << "debug: Is not Missing Plugin message" << std::endl;
+          }
+
           return false; //These warnings seem to be errors.
         }
         break;
       }
+    case Gst::MESSAGE_ELEMENT:
+      {
+         Glib::RefPtr<Gst::MessageElement> message_element = Glib::RefPtr<Gst::MessageElement>::cast_dynamic(message);
+         if(message_element)
+         {
+           //TODO: Are we allowed to do block or even show UI here?
+           //If not, we can do it in an idle callback.
+           gchar* description = gst_missing_plugin_message_get_description(message_element->gobj());
+           Gtk::MessageDialog dialog(*this, _("Missing GStreamer Plugin"), false, Gtk::MESSAGE_ERROR);
+           dialog.set_secondary_text(description);
+           dialog.run();
+           return false;
+         }
+        break;
+      }
     default:
-      std::cerr << _("Unhandled message on bus: ") << Gst::Enums::get_name(message->get_message_type()) << std::endl;
+      //For instance, Gst::MESSAGE_TAG, which is not an error.
+      std::cout << _("Unhandled message on bus: ") << Gst::Enums::get_name(message->get_message_type()) << std::endl;
       break;
   }
 

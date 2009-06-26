@@ -27,7 +27,7 @@ AC_SUBST(MY_CFLAGS)
 # We don't need them at build time (and can't check for them in a simple way),
 # but we will need them at run time.
 # And gst-plugins-bad must have been built with libmjpegtools-dev (on Debian/Ubuntu) available.
-VIDROT_MODULES="gtkmm-2.4 >= 2.12 gstreamermm-0.10"
+VIDROT_MODULES="gtkmm-2.4 >= 2.12 gstreamermm-0.10 gstreamer-pbutils-0.10"
 PKG_CHECK_MODULES(VIDROT, $VIDROT_MODULES)
 AC_SUBST(VIDROT_CFLAGS)
 AC_SUBST(VIDROT_LIBS)

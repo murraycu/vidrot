@@ -19,6 +19,7 @@
 #include "main_window.h"
 #include <gtkmm.h>
 #include <gstreamermm.h>
+#include <gst/pbutils/pbutils.h>
 #include <iostream>
 #include <glibmm/i18n.h>
 #include <config.h>
@@ -32,6 +33,7 @@ int main(int argc, char *argv[])
 
   Gtk::Main kit(argc, argv);
   Gst::init(argc, argv);
+  gst_pb_utils_init();
 
   // Pipeline setup. Abort if pipeline could not be created.
   Glib::RefPtr<Gst::Pipeline> pipeline = Gst::Pipeline::create("flippipe");

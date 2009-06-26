@@ -1,4 +1,15 @@
-2009-06-26  Murray Cumming  <murrayc@murrayc-x61>
+2009-06-26  Murray Cumming  <murrayc@murrayc.com>
+
+	Try to use the gstreamer missing-plugin system.
+
+	* configure.ac: Depend on gstreamer-pbutils-0.10 (from gst-plugins-base).
+	* src/vidrot.cc: main(): Call gst_pb_utils_init().
+	* src/main_window.cc: on_bus_message(): Try to deal with the message as 
+	a missing pluging message, to give the user a meaningful warning and 
+	offer installation of the plugin. This does not work in jhbuild but 
+	maybe it would work in a normal environment. We will see.
+
+2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
 	* src/main_window.cc: Constructor: Add labels to make the UI clearer, 
 	and correct the button order.
