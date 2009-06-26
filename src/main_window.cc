@@ -331,6 +331,7 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */, const G
            gchar* description = gst_missing_plugin_message_get_description(message_element->gobj());
            Gtk::MessageDialog dialog(*this, _("Missing GStreamer Plugin"), false, Gtk::MESSAGE_ERROR);
            dialog.set_secondary_text(description);
+           g_free(description);
            dialog.run();
            return false;
          }
@@ -410,10 +411,13 @@ bool MainWindow::on_convert_timeout()
 
   if(m_pipeline->query_position(format, position) && m_pipeline->query_duration(format, duration))
   {
-    double fraction = static_cast<double>(position) / duration;
+    const double fraction = static_cast<double>(position) / duration;
     m_progress_convert.set_fraction(fraction);
-    int seconds_remaining = time_remaining.elapsed() / fraction;
-    Glib::ustring conversion_status = Glib::ustring::compose("Time remaining: %1:%2", seconds_remaining / 60, seconds_remaining % 60);
+    const int seconds_remaining = time_remaining.elapsed() / fraction;
+    Glib::ustring conversion_status = 
+     Glib::ustring::compose("Time remaining: %1:%2", 
+       seconds_remaining / 60, 
+       seconds_remaining % 60);
     m_progress_convert.set_text(conversion_status);
   }
 
