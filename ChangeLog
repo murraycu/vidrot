@@ -1,5 +1,14 @@
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
+	Added a Stop button to allow the user to stop processing.
+
+	* src/main_window.[h|cc]: setup_widgets(): Added stop button, and 
+	handled it.
+	Added update_widget_sensitivity(processing) and moved all 
+	set_sensitivity() calls there to simplify the code.
+
+2009-06-26  Murray Cumming  <murrayc@murrayc.com>
+
 	* src/main_window.cc: on_bus_message(): g_free() the result from 
 	gst_missing_plugin_message_get_description().
 

@@ -33,6 +33,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_radio_anticlockwise(m_radiogroup, _("Rotate 90° _anticlockwise"), true),
   // m_progress_convert has no arguments for default constructor.
   m_button_convert(Gtk::Stock::EXECUTE),
+  m_button_stop(_("Stop")),
   m_button_quit(Gtk::Stock::QUIT),
   m_watch_id(0)
   // time_remaining has no arguments for default constructor.
@@ -142,9 +143,6 @@ void MainWindow::setup_widgets()
 {
   //TODO: Use Glade/Gtk::Builder for most of this:
 
-  // Cannot convert if a file is not selected.
-  m_button_convert.set_sensitive(false);
-
   // Filter videos for FileChooserButton.
   Gtk::FileFilter filter_video;
   filter_video.set_name(_("Video files"));
@@ -161,15 +159,17 @@ void MainWindow::setup_widgets()
   // Attach signals to widgets.
   m_button_filechooser.signal_file_set().connect(sigc::mem_fun(*this, &MainWindow::on_file_selected));
   m_button_convert.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_convert));
+  m_button_stop.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_stop));
   m_button_quit.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_quit));
 
   // Set tooltips.
-  m_button_filechooser.set_tooltip_text(_("Select a video to rotate"));
-  m_radio_anticlockwise.set_tooltip_text(_("Rotate the video anticlockwise by 90°"));
-  m_radio_clockwise.set_tooltip_text(_("Rotate the video clockwise by 90°"));
-  m_progress_convert.set_tooltip_text(_("Progress of conversion"));
-  m_button_convert.set_tooltip_text(_("Begin conversion"));
-  m_button_quit.set_tooltip_text("Quit " PACKAGE_NAME);
+  m_button_filechooser.set_tooltip_text(_("Select a video to rotate."));
+  m_radio_anticlockwise.set_tooltip_text(_("Rotate the video anticlockwise by 90°."));
+  m_radio_clockwise.set_tooltip_text(_("Rotate the video clockwise by 90°."));
+  m_progress_convert.set_tooltip_text(_("The progress of the conversion."));
+  m_button_convert.set_tooltip_text(_("Begin conversion."));
+  m_button_stop.set_tooltip_text(_("Stop processing."));
+  m_button_quit.set_tooltip_text(_("Quit the application."));
 
   // Pack widgets into vbox.
   Gtk::HBox* hbox = Gtk::manage( new Gtk::HBox(false, 6) );
@@ -189,10 +189,28 @@ void MainWindow::setup_widgets()
   m_vbox.pack_start(*hbox, Gtk::PACK_SHRINK);
 
   m_hbuttonbox.pack_start(m_button_quit);
+  m_hbuttonbox.pack_start(m_button_stop);
   m_hbuttonbox.pack_start(m_button_convert);
   m_vbox.pack_start(m_hbuttonbox, Gtk::PACK_SHRINK);
 
   add(m_vbox);
+
+  update_widget_sensitivity(false);
+}
+
+void MainWindow::update_widget_sensitivity(bool processing)
+{
+  const Glib::ustring uri = m_button_filechooser.get_uri();
+  const bool have_uri = !(uri.empty());
+
+  m_button_stop.set_sensitive(processing);
+
+  m_button_quit.set_sensitive(!processing);
+  m_button_convert.set_sensitive(!processing && have_uri);
+  m_button_filechooser.set_sensitive(!processing);
+
+  m_radio_clockwise.set_sensitive(!processing);
+  m_radio_anticlockwise.set_sensitive(!processing);
 }
 
 void MainWindow::on_file_selected()
@@ -210,11 +228,12 @@ void MainWindow::on_file_selected()
 
   // TODO: Write to same file.
   m_element_sink->set_uri(uri + ".new");
-  m_button_convert.set_sensitive();
   m_progress_convert.set_fraction(0.0);
 
   // Set preview size to 0, add probe so that first buffer sets preview size.
   m_video_area.set_size_request(0, 0);
+
+  update_widget_sensitivity(false /* not processing */);
 }
 
 void MainWindow::on_button_convert()
@@ -229,9 +248,21 @@ void MainWindow::on_button_convert()
 
 void MainWindow::on_button_quit()
 {
-  this->hide();
+  hide();
+}
 
-  return;
+void MainWindow::on_button_stop()
+{
+  //Stop the processing:
+  m_pipeline->set_state(Gst::STATE_NULL);
+
+  //Stop the progress check:
+  m_timeout_connection.disconnect();
+  m_progress_convert.set_fraction(0.0);
+  m_progress_convert.set_text("");
+
+  //Update the button sensitivity:
+  update_widget_sensitivity(false /* not processing */);
 }
 
 // Process asynchronous bus messages.
@@ -242,14 +273,11 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */, const G
     case Gst::MESSAGE_EOS:
       std::clog << "End of stream" << std::endl;
       m_pipeline->set_state(Gst::STATE_NULL);
-      m_button_filechooser.set_sensitive();
-      m_radio_clockwise.set_sensitive();
-      m_radio_anticlockwise.set_sensitive();
-      m_progress_convert.set_fraction(1.0);
-      m_progress_convert.set_text(_("Conversion complete!"));
-      m_button_convert.set_sensitive();
-      m_button_quit.set_sensitive();
       m_timeout_connection.disconnect();
+      update_widget_sensitivity(false /* not processing */);
+      m_progress_convert.set_fraction(1.0);
+      m_progress_convert.set_text(_("Conversion complete."));
+
       time_remaining.stop();
       break;
     case Gst::MESSAGE_ERROR:
@@ -269,18 +297,15 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */, const G
       }
     case Gst::MESSAGE_STATE_CHANGED:
       {
-        // Set UI to be insensitive during conversion.
+        // Set UI to be insensitive during conversion,
+        // apart from the Stop button.
         Glib::RefPtr<Gst::MessageStateChanged> message_statechange = Glib::RefPtr<Gst::MessageStateChanged>::cast_dynamic(message);
         if(message_statechange)
         {
           if(message_statechange->parse() == Gst::STATE_PLAYING)
           {
-            m_button_filechooser.set_sensitive(false);
-            m_radio_clockwise.set_sensitive(false);
-            m_radio_anticlockwise.set_sensitive(false);
+            update_widget_sensitivity(true /* processing */);
             m_progress_convert.set_text(_("Conversion progress"));
-            m_button_convert.set_sensitive(false);
-            m_button_quit.set_sensitive(false);
             m_timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(*this, &MainWindow::on_convert_timeout), 200);
 
             // Start timer to estimate remaining conversion time.
@@ -409,19 +434,21 @@ bool MainWindow::on_convert_timeout()
   gint64 position = 0;
   gint64 duration = 0;
 
-  if(m_pipeline->query_position(format, position) && m_pipeline->query_duration(format, duration))
+  if(m_pipeline->query_position(format, position) 
+    && m_pipeline->query_duration(format, duration))
   {
     const double fraction = static_cast<double>(position) / duration;
     m_progress_convert.set_fraction(fraction);
+
     const int seconds_remaining = time_remaining.elapsed() / fraction;
-    Glib::ustring conversion_status = 
+    const Glib::ustring conversion_status = 
      Glib::ustring::compose("Time remaining: %1:%2", 
        seconds_remaining / 60, 
        seconds_remaining % 60);
     m_progress_convert.set_text(conversion_status);
   }
 
-  return true;
+  return true; //Keep calling this timeout handler.
 }
 
 void MainWindow::set_file_uri(const Glib::ustring& file_uri)

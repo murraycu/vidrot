@@ -50,10 +50,12 @@ class MainWindow : public Gtk::Window
     void create_elements();
     void link_elements();
     void setup_widgets();
+    void update_widget_sensitivity(bool processing);
 
     // Signal handlers.
     void on_file_selected();
     void on_button_convert();
+    void on_button_stop();
     void on_button_quit();
     bool on_bus_message(const Glib::RefPtr<Gst::Bus>& bus, const Glib::RefPtr<Gst::Message>& message);
     void on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad);
@@ -69,8 +71,7 @@ class MainWindow : public Gtk::Window
     Gtk::RadioButton m_radio_clockwise;
     Gtk::RadioButton m_radio_anticlockwise;
     Gtk::ProgressBar m_progress_convert;
-    Gtk::Button m_button_convert;
-    Gtk::Button m_button_quit;
+    Gtk::Button m_button_convert, m_button_stop, m_button_quit;
 
     // gstreamermm Variables.
     Glib::RefPtr<Gst::Pipeline> m_pipeline;
