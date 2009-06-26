@@ -1,5 +1,13 @@
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
+	Fix distcheck.
+
+	* Makefile.am: Mention the .desktop file in DISTCLEANFILES to avoid 
+	a distcheck error.
+	* po/POTFILES.skip: Added this, to avoid a distcheck error.
+
+2009-06-26  Murray Cumming  <murrayc@murrayc.com>
+
 	Added a .desktop file.
 
 	* configure.ac, Makefile.am:

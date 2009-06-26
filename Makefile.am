@@ -20,3 +20,5 @@ desktop_DATA = $(desktop_in_files:.desktop.in.in=.desktop)
 
 EXTRA_DIST = data/vidrot_logo.png \
              vidrot.doap
+
+DISTCLEANFILES = $(desktop_DATA)
