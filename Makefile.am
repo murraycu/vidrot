@@ -11,5 +11,12 @@ src_vidrot_LDADD = $(VIDROT_LIBS)
 
 AM_CPPFLAGS = $(global_defs) $(VIDROT_CFLAGS) $(VIDROT_WARNINGS) $(MY_CFLAGS)
 
+
+#Copied from gnome-terminal's Makefile.am:
+desktopdir = $(datadir)/applications
+desktop_in_files = vidrot.desktop.in.in
+desktop_DATA = $(desktop_in_files:.desktop.in.in=.desktop)
+@INTLTOOL_DESKTOP_RULE@
+
 EXTRA_DIST = data/vidrot_logo.png \
              vidrot.doap

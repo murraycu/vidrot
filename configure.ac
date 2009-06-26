@@ -38,5 +38,9 @@ DK_ARG_ENABLE_WARNINGS([VIDROT_WARNINGS],
         [-Wall],
         [-Wall -Wextra])
 
-AC_CONFIG_FILES([Makefile po/Makefile.in])
+AC_CONFIG_FILES([
+  Makefile \
+  vidrot.desktop.in \
+  po/Makefile.in
+])
 AC_OUTPUT

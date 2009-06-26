@@ -1,5 +1,15 @@
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
+	Added a .desktop file.
+
+	* configure.ac, Makefile.am:
+	* vidrot.desktop.in.in: Install a .desktop file so vidrot shows up 
+	in the main desktop menu. I stole the MIME types list from totem, 
+	removing the audio MIME types, though there are probably still some 
+	inappropriate ones there.
+
+2009-06-26  Murray Cumming  <murrayc@murrayc.com>
+
 	Offer to open the finished file.
 
 	* src/main_window.[h|cc]: Added offer_finished_file(), which asks the 
