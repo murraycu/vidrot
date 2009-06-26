@@ -198,6 +198,9 @@ void MainWindow::setup_widgets()
 void MainWindow::on_file_selected()
 {
   const std::string uri = m_button_filechooser.get_uri();
+  if(uri.empty())
+    return;
+
   //std::cout << "debug: MainWindow::on_file_selected(): uri=" << uri << std::endl;
 
   // Set URI of uridecoder and filesink elements.

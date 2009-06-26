@@ -1,5 +1,10 @@
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
+	* src/main_window.cc: on_file_selected(): Silently ignore an empty 
+	URI.
+
+2009-06-26  Murray Cumming  <murrayc@murrayc.com>
+
 	Added command-line options.
 
 	* src/main.cc: Use a Glib::OptionContext to offer and parse --version 
