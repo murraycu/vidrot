@@ -139,6 +139,8 @@ void MainWindow::link_elements()
 
 void MainWindow::setup_widgets()
 {
+  //TODO: Use Glade/Gtk::Builder for most of this:
+
   // Cannot convert if a file is not selected.
   m_button_convert.set_sensitive(false);
 
@@ -147,10 +149,12 @@ void MainWindow::setup_widgets()
   filter_video.set_name(_("Video files"));
   filter_video.add_mime_type("video/*");
   m_button_filechooser.add_filter(filter_video);
+
   Gtk::FileFilter filter_any;
   filter_any.set_name(_("All files"));
   filter_any.add_pattern("*");
   m_button_filechooser.add_filter(filter_any);
+
   m_button_filechooser.set_current_folder(Glib::get_user_special_dir(G_USER_DIRECTORY_VIDEOS));
 
   // Attach signals to widgets.
@@ -167,13 +171,24 @@ void MainWindow::setup_widgets()
   m_button_quit.set_tooltip_text("Quit " PACKAGE_NAME);
 
   // Pack widgets into vbox.
-  m_vbox.pack_start(m_button_filechooser, Gtk::PACK_SHRINK);
+  Gtk::HBox* hbox = Gtk::manage( new Gtk::HBox(false, 6) );
+  Gtk::Label* label = Gtk::manage( new Gtk::Label(_("File: ")) );
+  hbox->pack_start(*label, Gtk::PACK_SHRINK);
+  hbox->pack_start(m_button_filechooser, Gtk::PACK_EXPAND_WIDGET);
+  m_vbox.pack_start(*hbox, Gtk::PACK_SHRINK);
+
   m_vbox.pack_start(m_video_area, Gtk::PACK_EXPAND_WIDGET);
   m_vbox.pack_start(m_radio_anticlockwise, Gtk::PACK_SHRINK);
   m_vbox.pack_start(m_radio_clockwise, Gtk::PACK_SHRINK);
-  m_vbox.pack_start(m_progress_convert, Gtk::PACK_SHRINK);
-  m_hbuttonbox.pack_start(m_button_convert);
+
+  hbox = Gtk::manage( new Gtk::HBox(false, 6) );
+  label = Gtk::manage( new Gtk::Label(_("Progress: ")) );
+  hbox->pack_start(*label, Gtk::PACK_SHRINK);
+  hbox->pack_start(m_progress_convert, Gtk::PACK_EXPAND_WIDGET);
+  m_vbox.pack_start(*hbox, Gtk::PACK_SHRINK);
+
   m_hbuttonbox.pack_start(m_button_quit);
+  m_hbuttonbox.pack_start(m_button_convert);
   m_vbox.pack_start(m_hbuttonbox, Gtk::PACK_SHRINK);
 
   add(m_vbox);

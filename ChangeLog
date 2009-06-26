@@ -1,3 +1,8 @@
+2009-06-26  Murray Cumming  <murrayc@murrayc-x61>
+
+	* src/main_window.cc: Constructor: Add labels to make the UI clearer, 
+	and correct the button order.
+
 2009-05-12  David King  <davidk@openismus.com>
 
 	* configure.ac: Don't define AC_CONFIG_AUX_DIR as it's not
