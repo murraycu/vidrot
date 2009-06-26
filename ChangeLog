@@ -1,5 +1,16 @@
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
+	Added command-line options.
+
+	* src/main.cc: Use a Glib::OptionContext to offer and parse --version 
+	and --file command-line options, also accepting the filepath with no 
+	-- option name.
+	* src/main_window.[h|cc]: Added set_file_uri(), for use by main(), 
+	though FileChooser.get_uri() does not return what I set, at least on 
+	my system. 
+
+2009-06-26  Murray Cumming  <murrayc@murrayc.com>
+
 	* Makefile.am:
 	* src/vidrot.cc: Renamed to src/main.cc, because I find that clearer.
 

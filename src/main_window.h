@@ -41,6 +41,11 @@ class MainWindow : public Gtk::Window
     explicit MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline);
     virtual ~MainWindow();
 
+    /** Set the chosen file, for instance from a command-line option.
+     * @param file_uri The URI of the file, such as file://something. Not a filepath.
+     */
+    void set_file_uri(const Glib::ustring& file_uri);
+
   private:
     void create_elements();
     void link_elements();

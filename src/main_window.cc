@@ -198,6 +198,7 @@ void MainWindow::setup_widgets()
 void MainWindow::on_file_selected()
 {
   const std::string uri = m_button_filechooser.get_uri();
+  //std::cout << "debug: MainWindow::on_file_selected(): uri=" << uri << std::endl;
 
   // Set URI of uridecoder and filesink elements.
   m_element_source->set_state(Gst::STATE_NULL);
@@ -414,4 +415,12 @@ bool MainWindow::on_convert_timeout()
   }
 
   return true;
+}
+
+void MainWindow::set_file_uri(const Glib::ustring& file_uri)
+{
+  //std::cout << "debug: MainWindow::set_file_uri(): URI=" << file_uri << std::endl;
+  m_button_filechooser.select_uri(file_uri);
+  //std::cout << "debug: MainWindow::set_file_uri(): test=" << test << ", get URI=" << m_button_filechooser.get_uri() << std::endl;
+  on_file_selected();
 }
