@@ -279,6 +279,9 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */, const G
       m_progress_convert.set_text(_("Conversion complete."));
 
       time_remaining.stop();
+
+      offer_finished_file(m_element_sink->get_uri());
+
       break;
     case Gst::MESSAGE_ERROR:
       {
@@ -457,4 +460,38 @@ void MainWindow::set_file_uri(const Glib::ustring& file_uri)
   m_button_filechooser.select_uri(file_uri);
   //std::cout << "debug: MainWindow::set_file_uri(): test=" << test << ", get URI=" << m_button_filechooser.get_uri() << std::endl;
   on_file_selected();
+}
+
+void MainWindow::offer_finished_file(const Glib::ustring& file_uri)
+{
+  std::cout << "debug: MainWindow::offer_finished_file(): file_uri=" << file_uri << std::endl;
+
+  Gtk::MessageDialog dialog(*this, _("Processing Complete"), false, 
+   Gtk::MESSAGE_INFO, Gtk::BUTTONS_NONE);
+  dialog.set_secondary_text(_("The rotated video file is now ready."));
+
+  dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+  const int response_open = 1;
+  dialog.add_button(_("Open File"), response_open);
+
+  const int response = dialog.run();
+  dialog.hide();
+  if(response != response_open)
+    return;
+
+  GError* gerror = 0;
+  if(!gtk_show_uri(0 /* screen */, file_uri.c_str(), GDK_CURRENT_TIME, &gerror))
+  {
+    const std::string message = gerror->message ? gerror->message : std::string();
+    g_error_free(gerror);
+
+    std::cerr << "Error while calling gtk_show_uri(): " << message << std::endl;
+
+    //Warn the user:
+    Gtk::MessageDialog dialog(*this, _("Error Opening File"), false, 
+      Gtk::MESSAGE_ERROR);
+    dialog.set_secondary_text(
+      _("An error occurred while trying to open the file. This may be a problem with the configuration of your system."));
+    dialog.run();
+  }
 }

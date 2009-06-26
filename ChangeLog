@@ -1,5 +1,13 @@
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
+	Offer to open the finished file.
+
+	* src/main_window.[h|cc]: Added offer_finished_file(), which asks the 
+	user and then calls gtk_show_uri() to open it, for instance, in totem.
+	on_bus_message(): Call offer_finished_file() at EOS.
+	
+2009-06-26  Murray Cumming  <murrayc@murrayc.com>
+
 	Added a Stop button to allow the user to stop processing.
 
 	* src/main_window.[h|cc]: setup_widgets(): Added stop button, and 
