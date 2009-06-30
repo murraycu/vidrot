@@ -1,5 +1,10 @@
 2009-06-30  David King  <davidk@openismus.com>
 
+	* src/main_window.cc: FileChooser::get_uri() returns a Glib::ustring,
+	not a std::string.
+
+2009-06-30  David King  <davidk@openismus.com>
+
 	* CodingStyle: Briefly document coding style.
 	* ChangeLog: Remove superfluous patch subjects.
 	* configure.ac: Add "no-define" option to Automake initialisation. Make

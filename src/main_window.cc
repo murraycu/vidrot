@@ -239,7 +239,7 @@ void MainWindow::update_widget_sensitivity(bool processing)
 
 void MainWindow::on_file_selected()
 {
-  const std::string uri = m_button_filechooser.get_uri();
+  const Glib::ustring uri = m_button_filechooser.get_uri();
   if(uri.empty())
   {
     return;
