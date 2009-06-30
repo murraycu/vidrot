@@ -1,0 +1,36 @@
+Coding Style
+------------
+
+Consistency
+
+* Keep consistent with the existing coding style
+
+Line length
+
+* 80 Columns width
+** Break long lines and indent by two spaces, do not try to align
+
+Indentation
+
+* Space indentation, no tabs
+** Indent by two spaces
+* public, protected and private are indented
+
+Comments
+
+* Multi-line comments use /* ... */, single-line comments //
+* Space between // and comment text, no space between // and commented-out code
+* Comments after preprocessor macros always use /* ... */
+* Comments always end with a full stop, never a colon
+* Comments are written in British English, not American English
+** The first person should never be used
+
+Spaces
+
+* No spaces between brackets and function names or arguments
+** One space after commas
+** One space before and one space after, assignment operators
+
+If
+
+* if statements are always followed by code blocks, never a single statement

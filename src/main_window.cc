@@ -19,7 +19,10 @@
 #include "main_window.h"
 #include <gtkmm.h>
 #include <gstreamermm.h>
-#include <gst/pbutils/missing-plugins.h> //For gst_missing_plugin_message_get_description().
+
+// For gst_missing_plugin_message_get_description().
+#include <gst/pbutils/missing-plugins.h>
+
 #include <gdk/gdkx.h>
 #include <glibmm/i18n.h>
 #include <iostream>
@@ -28,7 +31,8 @@
 MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_vbox(false, 6),
   m_hbuttonbox(Gtk::BUTTONBOX_END, 6),
-  m_button_filechooser(_("Select a video to open"), Gtk::FILE_CHOOSER_ACTION_OPEN),
+  m_button_filechooser(_("Select a video to open"),
+    Gtk::FILE_CHOOSER_ACTION_OPEN),
   m_radio_clockwise(m_radiogroup, _("Rotate 90° _clockwise"), true),
   m_radio_anticlockwise(m_radiogroup, _("Rotate 90° _anticlockwise"), true),
   // m_progress_convert has no arguments for default constructor.
@@ -63,7 +67,8 @@ void MainWindow::create_elements()
 {
   // Attach watcher to message bus.
   Glib::RefPtr<Gst::Bus> bus = m_pipeline->get_bus();
-  m_watch_id = bus->add_watch(sigc::mem_fun(*this, &MainWindow::on_bus_message));
+  m_watch_id = bus->add_watch(
+    sigc::mem_fun(*this, &MainWindow::on_bus_message));
 
   // Create Bins for audio and video filtering.
   m_bin_video = Gst::Bin::create("video-bin");
@@ -82,25 +87,32 @@ void MainWindow::create_elements()
   m_bin_audio->add(m_queue_audio);
 
   // Create elements using ElementFactory.
-  m_element_source = Gst::ElementFactory::create_element("uridecodebin", "uri-source");
+  m_element_source = Gst::ElementFactory::create_element("uridecodebin",
+    "uri-source");
   g_assert(m_element_source);
   m_pipeline->add(m_element_source);
-  m_element_colorspace = Gst::ElementFactory::create_element("ffmpegcolorspace", "vid-colorspace");
+  m_element_colorspace = Gst::ElementFactory::create_element("ffmpegcolorspace",
+    "vid-colorspace");
   g_assert(m_element_colorspace);
   m_bin_video->add(m_element_colorspace);
-  m_element_audconvert = Gst::ElementFactory::create_element("audioconvert", "aud-convert");
+  m_element_audconvert = Gst::ElementFactory::create_element("audioconvert",
+    "aud-convert");
   g_assert(m_element_audconvert);
   m_bin_audio->add(m_element_audconvert);
-  m_element_audcomp = Gst::ElementFactory::create_element("lame", "audcomp-element");
+  m_element_audcomp = Gst::ElementFactory::create_element("lame",
+    "audcomp-element");
   g_assert(m_element_audcomp);
   m_bin_audio->add(m_element_audcomp);
-  m_element_filter = Gst::ElementFactory::create_element("videoflip", "filter-element");
+  m_element_filter = Gst::ElementFactory::create_element("videoflip",
+    "filter-element");
   g_assert(m_element_filter);
   m_bin_video->add(m_element_filter);
-  m_element_vidrate = Gst::ElementFactory::create_element("videorate", "vidrate");
+  m_element_vidrate = Gst::ElementFactory::create_element("videorate",
+    "vidrate");
   g_assert(m_element_vidrate);
   m_bin_video->add(m_element_vidrate);
-  m_element_vidcomp = Gst::ElementFactory::create_element("mpeg2enc", "vidcomp-element");
+  m_element_vidcomp = Gst::ElementFactory::create_element("mpeg2enc",
+    "vidcomp-element");
   g_assert(m_element_vidcomp);
   m_bin_video->add(m_element_vidcomp);
   m_element_mux = Gst::ElementFactory::create_element("avimux", "mux-element");
@@ -115,20 +127,25 @@ void MainWindow::create_elements()
 void MainWindow::link_elements()
 {
   // Dynamically link uridecodebin to audio and video processing bins.
-  m_element_source->signal_pad_added().connect(sigc::mem_fun(*this, &MainWindow::on_decode_pad_added));
-  m_element_source->signal_no_more_pads().connect(sigc::mem_fun(*this, &MainWindow::on_no_more_pads));
+  m_element_source->signal_pad_added().connect(
+    sigc::mem_fun(*this, &MainWindow::on_decode_pad_added));
+  m_element_source->signal_no_more_pads().connect(
+    sigc::mem_fun(*this, &MainWindow::on_no_more_pads));
 
-  // Must link decode to filter after stream has been identified.
-  // What happens if there is no audio stream?
-  m_element_colorspace->link(m_element_filter)->link(m_element_vidrate)->link(m_element_vidcomp)->link(m_queue_video);
+  /* Must link decode to filter after stream has been identified.
+     What happens if there is no audio stream? */
+  m_element_colorspace->link(m_element_filter)->link(m_element_vidrate)->link(
+    m_element_vidcomp)->link(m_queue_video);
   m_element_audconvert->link(m_element_audcomp)->link(m_queue_audio);
 
   // Ghost pad setup for audio and video bins.
-  Glib::RefPtr<Gst::Pad> bin_audio_sink = m_element_audconvert->get_static_pad("sink");
+  Glib::RefPtr<Gst::Pad> bin_audio_sink =
+    m_element_audconvert->get_static_pad("sink");
   m_bin_audio->add_pad(Gst::GhostPad::create("audsink", bin_audio_sink));
   Glib::RefPtr<Gst::Pad> bin_audio_src = m_queue_audio->get_static_pad("src");
   m_bin_audio->add_pad(Gst::GhostPad::create("audsrc", bin_audio_src));
-  Glib::RefPtr<Gst::Pad> bin_video_sink = m_element_colorspace->get_static_pad("sink");
+  Glib::RefPtr<Gst::Pad> bin_video_sink =
+    m_element_colorspace->get_static_pad("sink");
   m_bin_video->add_pad(Gst::GhostPad::create("vidsink", bin_video_sink));
   Glib::RefPtr<Gst::Pad> bin_video_src = m_queue_video->get_static_pad("src");
   m_bin_video->add_pad(Gst::GhostPad::create("vidsrc", bin_video_src));
@@ -139,9 +156,9 @@ void MainWindow::link_elements()
   m_element_mux->link(m_element_sink);
 }
 
+// TODO: Use Glade/Gtk::Builder for most of this.
 void MainWindow::setup_widgets()
 {
-  //TODO: Use Glade/Gtk::Builder for most of this:
 
   // Filter videos for FileChooserButton.
   Gtk::FileFilter filter_video;
@@ -154,17 +171,23 @@ void MainWindow::setup_widgets()
   filter_any.add_pattern("*");
   m_button_filechooser.add_filter(filter_any);
 
-  m_button_filechooser.set_current_folder(Glib::get_user_special_dir(G_USER_DIRECTORY_VIDEOS));
+  m_button_filechooser.set_current_folder(Glib::get_user_special_dir(
+    G_USER_DIRECTORY_VIDEOS));
 
   // Attach signals to widgets.
-  m_button_filechooser.signal_file_set().connect(sigc::mem_fun(*this, &MainWindow::on_file_selected));
-  m_button_convert.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_convert));
-  m_button_stop.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_stop));
-  m_button_quit.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_quit));
+  m_button_filechooser.signal_file_set().connect(
+    sigc::mem_fun(*this, &MainWindow::on_file_selected));
+  m_button_convert.signal_clicked().connect(
+    sigc::mem_fun(*this, &MainWindow::on_button_convert));
+  m_button_stop.signal_clicked().connect(
+    sigc::mem_fun(*this, &MainWindow::on_button_stop));
+  m_button_quit.signal_clicked().connect(
+    sigc::mem_fun(*this, &MainWindow::on_button_quit));
 
   // Set tooltips.
   m_button_filechooser.set_tooltip_text(_("Select a video to rotate."));
-  m_radio_anticlockwise.set_tooltip_text(_("Rotate the video anticlockwise by 90°."));
+  m_radio_anticlockwise.set_tooltip_text(_(
+    "Rotate the video anticlockwise by 90°."));
   m_radio_clockwise.set_tooltip_text(_("Rotate the video clockwise by 90°."));
   m_progress_convert.set_tooltip_text(_("The progress of the conversion."));
   m_button_convert.set_tooltip_text(_("Begin conversion."));
@@ -172,8 +195,8 @@ void MainWindow::setup_widgets()
   m_button_quit.set_tooltip_text(_("Quit the application."));
 
   // Pack widgets into vbox.
-  Gtk::HBox* hbox = Gtk::manage( new Gtk::HBox(false, 6) );
-  Gtk::Label* label = Gtk::manage( new Gtk::Label(_("File: ")) );
+  Gtk::HBox* hbox = Gtk::manage(new Gtk::HBox(false, 6));
+  Gtk::Label* label = Gtk::manage(new Gtk::Label(_("File: ")));
   hbox->pack_start(*label, Gtk::PACK_SHRINK);
   hbox->pack_start(m_button_filechooser, Gtk::PACK_EXPAND_WIDGET);
   m_vbox.pack_start(*hbox, Gtk::PACK_SHRINK);
@@ -182,8 +205,8 @@ void MainWindow::setup_widgets()
   m_vbox.pack_start(m_radio_anticlockwise, Gtk::PACK_SHRINK);
   m_vbox.pack_start(m_radio_clockwise, Gtk::PACK_SHRINK);
 
-  hbox = Gtk::manage( new Gtk::HBox(false, 6) );
-  label = Gtk::manage( new Gtk::Label(_("Progress: ")) );
+  hbox = Gtk::manage(new Gtk::HBox(false, 6));
+  label = Gtk::manage(new Gtk::Label(_("Progress: ")));
   hbox->pack_start(*label, Gtk::PACK_SHRINK);
   hbox->pack_start(m_progress_convert, Gtk::PACK_EXPAND_WIDGET);
   m_vbox.pack_start(*hbox, Gtk::PACK_SHRINK);
@@ -198,6 +221,7 @@ void MainWindow::setup_widgets()
   update_widget_sensitivity(false);
 }
 
+// TODO: Replace the boolean argument with something sane.
 void MainWindow::update_widget_sensitivity(bool processing)
 {
   const Glib::ustring uri = m_button_filechooser.get_uri();
@@ -217,7 +241,9 @@ void MainWindow::on_file_selected()
 {
   const std::string uri = m_button_filechooser.get_uri();
   if(uri.empty())
+  {
     return;
+  }
 
   //std::cout << "debug: MainWindow::on_file_selected(): uri=" << uri << std::endl;
 
@@ -238,9 +264,10 @@ void MainWindow::on_file_selected()
 
 void MainWindow::on_button_convert()
 {
-  // Set videoflip method based on radio button state.
-  // TODO: Use GstVideoFlipMethod enumeration.
-  m_element_filter->set_property("method", m_radio_clockwise.get_active() ? 1 : 3);
+  /* Set videoflip method based on radio button state.
+     TODO: Use GstVideoFlipMethod enumeration. */
+  m_element_filter->set_property("method",
+    m_radio_clockwise.get_active() ? 1 : 3);
 
   // Begin conversion process (play stream).
   m_pipeline->set_state(Gst::STATE_PLAYING);
@@ -253,20 +280,21 @@ void MainWindow::on_button_quit()
 
 void MainWindow::on_button_stop()
 {
-  //Stop the processing:
+  // Stop the processing.
   m_pipeline->set_state(Gst::STATE_NULL);
 
-  //Stop the progress check:
+  // Stop the progress check.
   m_timeout_connection.disconnect();
   m_progress_convert.set_fraction(0.0);
   m_progress_convert.set_text("");
 
-  //Update the button sensitivity:
+  // Update the button sensitivity.
   update_widget_sensitivity(false /* not processing */);
 }
 
 // Process asynchronous bus messages.
-bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */, const Glib::RefPtr<Gst::Message>& message)
+bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
+  const Glib::RefPtr<Gst::Message>& message)
 {
   switch(message->get_message_type())
   {
@@ -285,7 +313,8 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */, const G
       break;
     case Gst::MESSAGE_ERROR:
       {
-        Glib::RefPtr<Gst::MessageError> message_error = Glib::RefPtr<Gst::MessageError>::cast_dynamic(message);
+        Glib::RefPtr<Gst::MessageError> message_error =
+          Glib::RefPtr<Gst::MessageError>::cast_dynamic(message);
         if(message_error)
         {
           Glib::Error err = message_error->parse();
@@ -300,16 +329,18 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */, const G
       }
     case Gst::MESSAGE_STATE_CHANGED:
       {
-        // Set UI to be insensitive during conversion,
-        // apart from the Stop button.
-        Glib::RefPtr<Gst::MessageStateChanged> message_statechange = Glib::RefPtr<Gst::MessageStateChanged>::cast_dynamic(message);
+        /* Set UI to be insensitive during conversion, apart from the Stop
+           button. */
+        Glib::RefPtr<Gst::MessageStateChanged> message_statechange =
+          Glib::RefPtr<Gst::MessageStateChanged>::cast_dynamic(message);
         if(message_statechange)
         {
           if(message_statechange->parse() == Gst::STATE_PLAYING)
           {
             update_widget_sensitivity(true /* processing */);
             m_progress_convert.set_text(_("Conversion progress"));
-            m_timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(*this, &MainWindow::on_convert_timeout), 200);
+            m_timeout_connection = Glib::signal_timeout().connect(
+              sigc::mem_fun(*this, &MainWindow::on_convert_timeout), 200);
 
             // Start timer to estimate remaining conversion time.
             time_remaining.start();
@@ -317,22 +348,25 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */, const G
         }
         else
         {
-          std::cerr << _("Unexpected state change: ") << message_statechange->parse() << std::endl;
+          std::cerr << _("Unexpected state change: ") <<
+            message_statechange->parse() << std::endl;
         }
         break;
       }
     case Gst::MESSAGE_WARNING:
       {
-        // For instance: "No decoder available for type ..."
-        // TODO: Show with a dialog.
-        // TODO: Eventually use the encoder/decoder installer helper thingy used by totem and others.
-        Glib::RefPtr<Gst::MessageWarning> message_warning = Glib::RefPtr<Gst::MessageWarning>::cast_dynamic(message);
+        /* For instance: "No decoder available for type ..."
+           TODO: Show with a dialog.
+           TODO: Eventually use the encoder/decoder installer helper thingy
+           used by totem and others. */
+        Glib::RefPtr<Gst::MessageWarning> message_warning =
+          Glib::RefPtr<Gst::MessageWarning>::cast_dynamic(message);
         if(message_warning)
         {
-          //TODO: This can contain a message about "no decoder available",
-          //but we would need a GST_MESSAGE_ELEMENT to call
-          //gst_missing_plugin_message_get_description() to discover what is
-          //actually missing.
+          /* TODO: This can contain a message about "no decoder available",
+             but we would need a GST_MESSAGE_ELEMENT to call
+             gst_missing_plugin_message_get_description() to discover what is
+             actually missing. */
           const Glib::Error error = message_warning->parse();
           std::cout << _("Gstreamer warning: ") << error.what() << std::endl;
 
@@ -345,19 +379,22 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */, const G
             std::cout << "debug: Is not Missing Plugin message" << std::endl;
           }
 
-          return false; //These warnings seem to be errors.
+          return false; // These warnings seem to be errors.
         }
         break;
       }
     case Gst::MESSAGE_ELEMENT:
       {
-         Glib::RefPtr<Gst::MessageElement> message_element = Glib::RefPtr<Gst::MessageElement>::cast_dynamic(message);
+         Glib::RefPtr<Gst::MessageElement> message_element =
+           Glib::RefPtr<Gst::MessageElement>::cast_dynamic(message);
          if(message_element)
          {
-           //TODO: Are we allowed to do block or even show UI here?
-           //If not, we can do it in an idle callback.
-           gchar* description = gst_missing_plugin_message_get_description(message_element->gobj());
-           Gtk::MessageDialog dialog(*this, _("Missing GStreamer Plugin"), false, Gtk::MESSAGE_ERROR);
+           /* TODO: Are we allowed to do block or even show UI here?
+              If not, we can do it in an idle callback. */
+           gchar* description = gst_missing_plugin_message_get_description(
+             message_element->gobj());
+           Gtk::MessageDialog dialog(*this, _("Missing GStreamer Plugin"),
+             false, Gtk::MESSAGE_ERROR);
            dialog.set_secondary_text(description);
            g_free(description);
            dialog.run();
@@ -366,14 +403,16 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */, const G
         break;
       }
     default:
-      //For instance, Gst::MESSAGE_TAG, which is not an error.
-      std::cout << _("Unhandled message on bus: ") << Gst::Enums::get_name(message->get_message_type()) << std::endl;
+      // For instance, Gst::MESSAGE_TAG, which is not an error.
+      std::cout << _("Unhandled message on bus: ") <<
+        Gst::Enums::get_name(message->get_message_type()) << std::endl;
       break;
   }
 
   return true;
 }
 
+// TODO: Needs horrible and ugly not-build-with-exceptions hacks.
 void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
 {
   // Check whether dynamic pad has audio or video caps.
@@ -405,8 +444,8 @@ void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
     // Video caps found.
     try
     {
-      // Link decodebin source to videoflip sink.
-      // Acquire sink pad from videoflip element.
+      /* Link decodebin source to videoflip sink. Acquire sink pad from
+         videoflip element. */
       Glib::RefPtr<Gst::Pad> sink_pad = m_bin_video->get_static_pad("vidsink");
       new_pad->link(sink_pad);
       m_bin_video->set_state(Gst::STATE_PAUSED);
@@ -437,8 +476,8 @@ bool MainWindow::on_convert_timeout()
   gint64 position = 0;
   gint64 duration = 0;
 
-  if(m_pipeline->query_position(format, position) 
-    && m_pipeline->query_duration(format, duration))
+  if(m_pipeline->query_position(format, position) &&
+    m_pipeline->query_duration(format, duration))
   {
     const double fraction = static_cast<double>(position) / duration;
     m_progress_convert.set_fraction(fraction);
@@ -451,9 +490,10 @@ bool MainWindow::on_convert_timeout()
     m_progress_convert.set_text(conversion_status);
   }
 
-  return true; //Keep calling this timeout handler.
+  return true; // Keep calling this timeout handler.
 }
 
+// Set the chosen file, for instance from a command-line option.
 void MainWindow::set_file_uri(const Glib::ustring& file_uri)
 {
   //std::cout << "debug: MainWindow::set_file_uri(): URI=" << file_uri << std::endl;
@@ -462,12 +502,15 @@ void MainWindow::set_file_uri(const Glib::ustring& file_uri)
   on_file_selected();
 }
 
+// TODO: Needs horrible and ugly not-build-with-exceptions hacks.
+// TODO: Remove dialog.
 void MainWindow::offer_finished_file(const Glib::ustring& file_uri)
 {
-  std::cout << "debug: MainWindow::offer_finished_file(): file_uri=" << file_uri << std::endl;
+  std::cout << "debug: MainWindow::offer_finished_file(): file_uri=" <<
+    file_uri << std::endl;
 
   Gtk::MessageDialog dialog(*this, _("Processing Complete"), false, 
-   Gtk::MESSAGE_INFO, Gtk::BUTTONS_NONE);
+    Gtk::MESSAGE_INFO, Gtk::BUTTONS_NONE);
   dialog.set_secondary_text(_("The rotated video file is now ready."));
 
   dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
@@ -477,17 +520,20 @@ void MainWindow::offer_finished_file(const Glib::ustring& file_uri)
   const int response = dialog.run();
   dialog.hide();
   if(response != response_open)
+  {
     return;
+  }
 
   GError* gerror = 0;
   if(!gtk_show_uri(0 /* screen */, file_uri.c_str(), GDK_CURRENT_TIME, &gerror))
   {
-    const std::string message = gerror->message ? gerror->message : std::string();
+    const std::string message = gerror->message ?
+      gerror->message : std::string();
     g_error_free(gerror);
 
     std::cerr << "Error while calling gtk_show_uri(): " << message << std::endl;
 
-    //Warn the user:
+    // Warn the user.
     Gtk::MessageDialog dialog(*this, _("Error Opening File"), false, 
       Gtk::MESSAGE_ERROR);
     dialog.set_secondary_text(

@@ -24,18 +24,18 @@
 #include <glibmm/i18n.h>
 #include <config.h>
 
-
 class OptionGroup : public Glib::OptionGroup
 { 
-public:
-  OptionGroup();
+  public:
+    OptionGroup();
 
-  std::string m_arg_filename;
-  bool m_arg_version;
+    std::string m_arg_filename;
+    bool m_arg_version;
 };
 
-OptionGroup::OptionGroup()
-: Glib::OptionGroup("vidrot", _("Vidrot options"), _("Command-line options for vidrot")),
+OptionGroup::OptionGroup() :
+  Glib::OptionGroup(PACKAGE_TARNAME, _("Vidrot options"),
+    _("Command-line options for vidrot")),
   m_arg_version(false)
 {
   Glib::OptionEntry entry;
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
   bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
   textdomain(GETTEXT_PACKAGE);
 
-  //Initialize gtkmm and gstreamermm:
+  // Initialise gtkmm and gstreamermm.
   Glib::OptionContext context;
   OptionGroup group;
   context.set_main_group(group);
@@ -66,19 +66,18 @@ int main(int argc, char *argv[])
   Gst::init(argc, argv);
   gst_pb_utils_init();
 
-
-  //Process command-line options:
+  // Process command-line options.
 #ifdef GLIBMM_EXCEPTIONS_ENABLED
   try
 #else
   std::auto_ptr<Glib::Error> error;
-#endif // GLIBMM_EXCEPTIONS_ENABLED
+#endif /* GLIBMM_EXCEPTIONS_ENABLED */
   {
 #ifdef GLIBMM_EXCEPTIONS_ENABLED
     context.parse(argc, argv);
 #else
     context.parse(argc, argv, error);
-#endif // GLIBMM_EXCEPTIONS_ENABLED
+#endif /* GLIBMM_EXCEPTIONS_ENABLED */
   }
 #ifdef GLIBMM_EXCEPTIONS_ENABLED
   catch(const Glib::OptionError& ex)
@@ -91,7 +90,7 @@ int main(int argc, char *argv[])
     if(exptr)
     {
       const Glib::OptionError& ex = *exptr;
-#endif // !GLIBMM_EXCEPTIONS_ENABLED
+#endif /* !GLIBMM_EXCEPTIONS_ENABLED */
       std::cout << _("Error while parsing command-line options: ") << std::endl << ex.what() << std::endl;
       std::cout << _("Use --help to see a list of available command-line options.") << std::endl;
       return 0;
@@ -102,35 +101,35 @@ int main(int argc, char *argv[])
   }
   catch(const Glib::Error& ex)
   {
-#endif
+#endif /* GLIBMM_EXCEPTIONS_ENABLED */
     std::cout << "Error: " << ex.what() << std::endl;
     return 0;
   }
 
-
-  //The --version command-line option:
+  // The --version command-line option.
   if(group.m_arg_version)
   {
-    std::cout << VERSION << std::endl;
+    std::cout << PACKAGE_VERSION << std::endl;
     return 0;
   }
 
 
-  //The --file parameter, if any:
+  // The --file parameter, if any.
   Glib::ustring input_uri = group.m_arg_filename;
 
-  // The GOption documentation says that options without names will be returned to the application as "rest arguments".
-  // I guess this means they will be left in the argv. murrayc
+  /* The GOption documentation says that options without names will be returned
+     to the application as "rest arguments". I guess this means they will be
+     left in the argv. murrayc */
   if(input_uri.empty() && (argc > 1))
   {
     const char* pch = argv[1];
     if(pch)
-      input_uri = pch; //Actually a filepath, not a URI.
+      input_uri = pch; // Actually a filepath, not a URI.
   }
 
   if(!input_uri.empty())
   {
-    //Get a URI (file://something) from the filepath:
+    // Get a URI (file://something) from the filepath.
     Glib::RefPtr<Gio::File> file = Gio::File::create_for_commandline_arg(input_uri);
     if(file)
       input_uri = file->get_uri(); 

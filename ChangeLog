@@ -1,19 +1,27 @@
 2009-06-30  David King  <davidk@openismus.com>
 
+	* CodingStyle: Briefly document coding style.
+	* ChangeLog: Remove superfluous patch subjects.
+	* configure.ac: Add "no-define" option to Automake initialisation. Make
+	use of the new defines that it provides. Remove unnecessary line breaks.
+	* src/main.cc:
+	* src/main_window.cc:
+	* src/main_window.h: Fix coding style issues.
+	* vidrot.desktop.in.in: Use Automake variables where appropriate.
+	* vidrot.doap: Fix email address.
+
+2009-06-30  David King  <davidk@openismus.com>
+
 	* configure.ac: Depend on gstreamermm >= 0.10.2 for videoscale.h and
 	ximagesink.h headers.
 
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
-
-	Fix distcheck.
 
 	* Makefile.am: Mention the .desktop file in DISTCLEANFILES to avoid 
 	a distcheck error.
 	* po/POTFILES.skip: Added this, to avoid a distcheck error.
 
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
-
-	Added a .desktop file.
 
 	* configure.ac, Makefile.am:
 	* vidrot.desktop.in.in: Install a .desktop file so vidrot shows up 
@@ -23,15 +31,11 @@
 
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
-	Offer to open the finished file.
-
 	* src/main_window.[h|cc]: Added offer_finished_file(), which asks the 
 	user and then calls gtk_show_uri() to open it, for instance, in totem.
 	on_bus_message(): Call offer_finished_file() at EOS.
 	
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
-
-	Added a Stop button to allow the user to stop processing.
 
 	* src/main_window.[h|cc]: setup_widgets(): Added stop button, and 
 	handled it.
@@ -50,8 +54,6 @@
 
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
-	Added command-line options.
-
 	* src/main.cc: Use a Glib::OptionContext to offer and parse --version 
 	and --file command-line options, also accepting the filepath with no 
 	-- option name.
@@ -66,9 +68,8 @@
 
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
-	Try to use the gstreamer missing-plugin system.
-
-	* configure.ac: Depend on gstreamer-pbutils-0.10 (from gst-plugins-base).
+	* configure.ac: Depend on gstreamer-pbutils-0.10 (from
+	gst-plugins-base).
 	* src/vidrot.cc: main(): Call gst_pb_utils_init().
 	* src/main_window.cc: on_bus_message(): Try to deal with the message as 
 	a missing pluging message, to give the user a meaningful warning and 

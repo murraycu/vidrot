@@ -41,9 +41,6 @@ class MainWindow : public Gtk::Window
     explicit MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline);
     virtual ~MainWindow();
 
-    /** Set the chosen file, for instance from a command-line option.
-     * @param file_uri The URI of the file, such as file://something. Not a filepath.
-     */
     void set_file_uri(const Glib::ustring& file_uri);
 
   private:
@@ -72,7 +69,9 @@ class MainWindow : public Gtk::Window
     Gtk::RadioButton m_radio_clockwise;
     Gtk::RadioButton m_radio_anticlockwise;
     Gtk::ProgressBar m_progress_convert;
-    Gtk::Button m_button_convert, m_button_stop, m_button_quit;
+    Gtk::Button m_button_convert;
+    Gtk::Button m_button_stop;
+    Gtk::Button m_button_quit;
 
     // gstreamermm Variables.
     Glib::RefPtr<Gst::Pipeline> m_pipeline;

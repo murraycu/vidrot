@@ -11,7 +11,7 @@
   <maintainer>
   <foaf:Person>
   <foaf:name>David King</foaf:name>
-  <foaf:mbox rdf:resource="davidk@openismus.com" />
+  <foaf:mbox rdf:resource="mailto:davidk@openismus.com" />
   </foaf:Person>
   </maintainer>
 </Project>
