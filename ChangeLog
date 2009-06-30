@@ -1,5 +1,10 @@
 2009-06-30  David King  <davidk@openismus.com>
 
+	* debian/changelog:
+	* debian/control: Update dependency of gstreamermm.
+
+2009-06-30  David King  <davidk@openismus.com>
+
 	* debian/*: Add Debian packaging.
 
 2009-06-30  David King  <davidk@openismus.com>

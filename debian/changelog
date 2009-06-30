@@ -1,3 +1,9 @@
+vidrot (0.1-1~openismus2) jaunty; urgency=low
+
+  * Update dependencies for correct gstreamermm version.
+
+ -- David King <davidk@openismus.com>  Tue, 30 Jun 2009 17:43:06 +0200
+
 vidrot (0.1-1~openismus1) jaunty; urgency=low
 
   * Update Debian packaging to CDBS.

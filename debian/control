@@ -16,7 +16,7 @@ Description: Video rotation application
 Package: vidrot-dbg
 Section: video
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libgstreamermm-0.10-dbg (>= 0.10.2), libgtkmm-2.4-dbg (>= 2.12.0), vidrot (= ${Source-Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libgstreamermm-0.10-dbg (>= 0.10.2~openismus0), libgtkmm-2.4-dbg (>= 2.12.0), vidrot (= ${Source-Version})
 Description: Video rotation application (debug symbols)
  A Gtkmm/GStreamermm application to rotate videos. This package contains debug
  symbols.
