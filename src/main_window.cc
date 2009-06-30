@@ -52,7 +52,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   link_elements();
   setup_widgets();
 
-  set_default_size(200, 300);
+  //set_default_size(200, 300);
   show_all_children();
 }
 
@@ -201,7 +201,7 @@ void MainWindow::setup_widgets()
   hbox->pack_start(m_button_filechooser, Gtk::PACK_EXPAND_WIDGET);
   m_vbox.pack_start(*hbox, Gtk::PACK_SHRINK);
 
-  m_vbox.pack_start(m_video_area, Gtk::PACK_EXPAND_WIDGET);
+  //m_vbox.pack_start(m_video_area, Gtk::PACK_EXPAND_WIDGET);
   m_vbox.pack_start(m_radio_anticlockwise, Gtk::PACK_SHRINK);
   m_vbox.pack_start(m_radio_clockwise, Gtk::PACK_SHRINK);
 
