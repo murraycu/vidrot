@@ -185,14 +185,14 @@ void MainWindow::setup_widgets()
     sigc::mem_fun(*this, &MainWindow::on_button_quit));
 
   // Set tooltips.
-  m_button_filechooser.set_tooltip_text(_("Select a video to rotate."));
+  m_button_filechooser.set_tooltip_text(_("Select a video to rotate"));
   m_radio_anticlockwise.set_tooltip_text(_(
     "Rotate the video anticlockwise by 90°."));
-  m_radio_clockwise.set_tooltip_text(_("Rotate the video clockwise by 90°."));
-  m_progress_convert.set_tooltip_text(_("The progress of the conversion."));
-  m_button_convert.set_tooltip_text(_("Begin conversion."));
-  m_button_stop.set_tooltip_text(_("Stop processing."));
-  m_button_quit.set_tooltip_text(_("Quit the application."));
+  m_radio_clockwise.set_tooltip_text(_("Rotate the video clockwise by 90°"));
+  m_progress_convert.set_tooltip_text(_("The progress of the conversion"));
+  m_button_convert.set_tooltip_text(_("Begin conversion"));
+  m_button_stop.set_tooltip_text(_("Cancel processing"));
+  m_button_quit.set_tooltip_text(_("Quit the application"));
 
   // Pack widgets into vbox.
   Gtk::HBox* hbox = Gtk::manage(new Gtk::HBox(false, 6));

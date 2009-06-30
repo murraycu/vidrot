@@ -1,5 +1,9 @@
 2009-06-30  David King  <davidk@openismus.com>
 
+	* src/main_window.cc: Tooltips should not have trailing full stops.
+
+2009-06-30  David King  <davidk@openismus.com>
+
 	* src/main_window.cc: FileChooser::get_uri() returns a Glib::ustring,
 	not a std::string.
 
