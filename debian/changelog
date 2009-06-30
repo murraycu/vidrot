@@ -1,3 +1,9 @@
+vidrot (0.1-1~openismus3) jaunty; urgency=low
+
+  * Really update gstreamermm dependencies.
+
+ -- David King <davidk@openismus.com>  Tue, 30 Jun 2009 18:03:46 +0200
+
 vidrot (0.1-1~openismus2) jaunty; urgency=low
 
   * Update dependencies for correct gstreamermm version.
