@@ -1,5 +1,11 @@
 2009-06-30  David King  <davidk@openismus.com>
 
+	* src/main_window.cc: Remove completion dialog from
+	offer_finished_file(), as gtk_show_uri() does not work for me. Also,
+	modal dialogs are unnecessary.
+
+2009-06-30  David King  <davidk@openismus.com>
+
 	* src/main_window.cc: Remove preview widget, as it currently does not
 	display a preview.
 

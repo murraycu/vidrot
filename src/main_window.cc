@@ -502,10 +502,10 @@ void MainWindow::set_file_uri(const Glib::ustring& file_uri)
   on_file_selected();
 }
 
-// TODO: Needs horrible and ugly not-build-with-exceptions hacks.
 // TODO: Remove dialog.
 void MainWindow::offer_finished_file(const Glib::ustring& file_uri)
 {
+#if 0
   std::cout << "debug: MainWindow::offer_finished_file(): file_uri=" <<
     file_uri << std::endl;
 
@@ -540,4 +540,5 @@ void MainWindow::offer_finished_file(const Glib::ustring& file_uri)
       _("An error occurred while trying to open the file. This may be a problem with the configuration of your system."));
     dialog.run();
   }
+#endif /* 0 */
 }
