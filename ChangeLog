@@ -1,5 +1,12 @@
 2009-06-30  David King  <davidk@openismus.com>
 
+	* .gitignore: Update.
+	* configure.ac:
+	* Makefile.am: Build system updates.
+	* INSTALL: Remove from repository.
+
+2009-06-30  David King  <davidk@openismus.com>
+
 	* src/main_window.cc: Remove completion dialog from
 	offer_finished_file(), as gtk_show_uri() does not work for me. Also,
 	modal dialogs are unnecessary.
@@ -51,7 +58,8 @@
 
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
-	* configure.ac, Makefile.am:
+	* configure.ac
+	* Makefile.am:
 	* vidrot.desktop.in.in: Install a .desktop file so vidrot shows up 
 	in the main desktop menu. I stole the MIME types list from totem, 
 	removing the audio MIME types, though there are probably still some 

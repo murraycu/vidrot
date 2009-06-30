@@ -7,8 +7,6 @@ AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE([-Wall -Werror dist-bzip2 no-define])
 
-AC_PROG_CC
-AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_PROG_INSTALL
 
@@ -27,10 +25,10 @@ AC_SUBST(MY_CFLAGS)
 # They are not required at build time but are necessary at run time.
 # Also, gst-plugins-bad must have been built with libmjpegtools-dev (on
 # Debian/Ubuntu) available.
-VIDROT_MODULES="gtkmm-2.4 >= 2.12 gstreamermm-0.10 >= 0.10.2 gstreamer-pbutils-0.10"
-PKG_CHECK_MODULES(VIDROT, $VIDROT_MODULES)
-AC_SUBST(VIDROT_CFLAGS)
-AC_SUBST(VIDROT_LIBS)
+
+PKG_CHECK_MODULES([VIDROT], [gtkmm-2.4 >= 2.12 gstreamermm-0.10 >= 0.10.2 gstreamer-pbutils-0.10])
+AC_SUBST([VIDROT_CFLAGS])
+AC_SUBST([VIDROT_LIBS])
 
 AC_LANG([C++])
 

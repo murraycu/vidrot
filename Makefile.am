@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = subdir-objects
-ACLOCAL_AMFLAGS = -I m4
+ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 DISTCHECK_CONFIGURE_FLAGS = --enable-warnings=fatal
 SUBDIRS = po
 
@@ -9,7 +9,7 @@ bin_PROGRAMS = src/vidrot
 src_vidrot_SOURCES = src/main.cc src/main_window.cc src/main_window.h src/vidrot_preview.cc src/vidrot_preview.h
 src_vidrot_LDADD = $(VIDROT_LIBS)
 
-AM_CPPFLAGS = $(global_defs) $(VIDROT_CFLAGS) $(VIDROT_WARNINGS) $(MY_CFLAGS)
+AM_CXXFLAGS = $(global_defs) $(VIDROT_CFLAGS) $(VIDROT_WARNINGS) $(MY_CFLAGS)
 
 
 #Copied from gnome-terminal's Makefile.am:
