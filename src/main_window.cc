@@ -37,7 +37,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   m_radio_anticlockwise(m_radiogroup, _("Rotate 90° _anticlockwise"), true),
   // m_progress_convert has no arguments for default constructor.
   m_button_convert(Gtk::Stock::EXECUTE),
-  m_button_stop(_("Stop")),
+  m_button_stop(Gtk::Stock::STOP),
   m_button_quit(Gtk::Stock::QUIT),
   m_watch_id(0)
   // time_remaining has no arguments for default constructor.
@@ -187,11 +187,11 @@ void MainWindow::setup_widgets()
   // Set tooltips.
   m_button_filechooser.set_tooltip_text(_("Select a video to rotate"));
   m_radio_anticlockwise.set_tooltip_text(_(
-    "Rotate the video anticlockwise by 90°."));
+    "Rotate the video anticlockwise by 90°"));
   m_radio_clockwise.set_tooltip_text(_("Rotate the video clockwise by 90°"));
   m_progress_convert.set_tooltip_text(_("The progress of the conversion"));
   m_button_convert.set_tooltip_text(_("Begin conversion"));
-  m_button_stop.set_tooltip_text(_("Cancel processing"));
+  m_button_stop.set_tooltip_text(_("Cancel conversion"));
   m_button_quit.set_tooltip_text(_("Quit the application"));
 
   // Pack widgets into vbox.
