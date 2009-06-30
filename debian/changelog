@@ -1,0 +1,12 @@
+vidrot (0.1-1~openismus1) jaunty; urgency=low
+
+  * Update Debian packaging to CDBS.
+
+ -- David King <davidk@openismus.com>  Tue, 30 Jun 2009 16:36:11 +0200
+
+vidrot (0.1-1~openismus0) jaunty; urgency=low
+
+  * Initial release
+
+ -- Johannes Schmid <johannes.schmid@openismus.com>  Tue, 12 May 2009 12:09:50 +0200
+

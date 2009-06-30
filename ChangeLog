@@ -1,5 +1,9 @@
 2009-06-30  David King  <davidk@openismus.com>
 
+	* debian/*: Add Debian packaging.
+
+2009-06-30  David King  <davidk@openismus.com>
+
 	* .gitignore: Update.
 	* configure.ac:
 	* Makefile.am: Build system updates.

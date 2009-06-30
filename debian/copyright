@@ -1,0 +1,15 @@
+This package was debianized by Johannes Schmid <johannes.schmid@openismus.com> on
+Tue, 12 May 2009 12:09:50 +0200.
+
+It was downloaded from http://github.com/amigadave/vidrot/tree/master
+
+Upstream Author(s):
+    David King <davidk@openismus.com
+
+License:
+
+    GPL, see `/usr/share/common-licenses/GPL'.
+
+
+The Debian packaging is copyright 2009, Johannes Schmid <johannes.schmid@openismus.com> and
+is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
