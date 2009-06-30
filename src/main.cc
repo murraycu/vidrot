@@ -41,13 +41,13 @@ OptionGroup::OptionGroup() :
   Glib::OptionEntry entry;
   entry.set_long_name("file");
   entry.set_short_name('f');
-  entry.set_description(_("The Filename"));
+  entry.set_description(_("The filename"));
   add_entry_filename(entry, m_arg_filename);
 
   Glib::OptionEntry entry_version;
   entry_version.set_long_name("version");
   entry_version.set_short_name('V');
-  entry_version.set_description(_("The version of this application."));
+  entry_version.set_description(_("The version of this application"));
   add_entry(entry_version, m_arg_version);
 }
 
