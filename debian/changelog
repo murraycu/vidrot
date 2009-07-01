@@ -1,3 +1,27 @@
+vidrot (0.1-1~openismus7) jaunty; urgency=low
+
+  * Regenerate build files, as error crept into last change.
+
+ -- David King <davidk@openismus.com>  Wed, 01 Jul 2009 13:09:39 +0200
+
+vidrot (0.1-1~openismus6) jaunty; urgency=low
+
+  * Add shlibs.local to override shlibs:Depends.
+
+ -- David King <davidk@openismus.com>  Wed, 01 Jul 2009 12:44:22 +0200
+
+vidrot (0.1-1~openismus5) jaunty; urgency=low
+
+  * Change libgtkmm dependency to include "1:" prefix.
+
+ -- David King <davidk@openismus.com>  Wed, 01 Jul 2009 11:59:01 +0200
+
+vidrot (0.1-1~openismus4) jaunty; urgency=low
+
+  * Change libgstreamermm-0.10 to libgstreamermm-0.10-2 in dependencies.
+
+ -- David King <davidk@openismus.com>  Wed, 01 Jul 2009 11:31:32 +0200
+
 vidrot (0.1-1~openismus3) jaunty; urgency=low
 
   * Really update gstreamermm dependencies.

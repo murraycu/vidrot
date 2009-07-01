@@ -2,21 +2,21 @@ Source: vidrot
 Section: video
 Priority: extra
 Maintainer: Johannes Schmid <johannes.schmid@openismus.com>
-Build-Depends: cdbs (>= 0.4.48), intltool, autotools-dev, libgstreamermm-0.10-dev (>= 0.10.2~openismus0), libgtkmm-2.4-dev (>= 2.12.0)
+Build-Depends: cdbs (>= 0.4.48), intltool, autotools-dev, libgstreamermm-0.10-dev (>= 0.10.2~openismus0), libgtkmm-2.4-dev (>= 1:2.12.0)
 Standards-Version: 3.7.2
 Homepage: http://github.com/amigadave/vidrot/tree/master
 
 Package: vidrot
 Section: video
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libgstreamermm-0.10 (>= 0.10.2~openismus0), libgtkmm-2.4 (>= 2.12.0)
+Depends: ${shlibs:Depends}, ${misc:Depends}, libgstreamermm-0.10-2 (>= 0.10.2~openismus0), libgtkmm-2.4-1c2a (>= 1:2.12.0)
 Description: Video rotation application
  A Gtkmm/GStreamermm application to rotate videos
 
 Package: vidrot-dbg
 Section: video
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libgstreamermm-0.10-dbg (>= 0.10.2~openismus0), libgtkmm-2.4-dbg (>= 2.12.0), vidrot (= ${Source-Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libgstreamermm-0.10-dbg (>= 0.10.2~openismus0), libgtkmm-2.4-dbg (>= 1:2.12.0), vidrot (= ${Source-Version})
 Description: Video rotation application (debug symbols)
  A Gtkmm/GStreamermm application to rotate videos. This package contains debug
  symbols.
