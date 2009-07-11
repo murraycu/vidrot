@@ -339,8 +339,8 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
           {
             update_widget_sensitivity(true /* processing */);
             m_progress_convert.set_text(_("Conversion progress"));
-            m_timeout_connection = Glib::signal_timeout().connect(
-              sigc::mem_fun(*this, &MainWindow::on_convert_timeout), 200);
+            m_timeout_connection = Glib::signal_timeout().connect_seconds(
+              sigc::mem_fun(*this, &MainWindow::on_convert_timeout), 1);
 
             // Start timer to estimate remaining conversion time.
             time_remaining.start();

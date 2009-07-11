@@ -1,3 +1,8 @@
+2009-07-11  David King  <davidk@openismus.com>
+
+	* src/main_window.cc: Change progress bar timeout in on_bus_message()
+	to use connect_seconds() rather than connect().
+
 2009-06-30  David King  <davidk@openismus.com>
 
 	* debian/changelog:
