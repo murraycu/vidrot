@@ -1,3 +1,8 @@
+2009-07-24  Murray Cumming  <murrayc@murrayc.com>
+
+	* debian/changelog:
+	* debian/control: Added likely gstreamer plugin dependencies.
+
 2009-07-11  David King  <davidk@openismus.com>
 
 	* src/main_window.cc: Change progress bar timeout in on_bus_message()

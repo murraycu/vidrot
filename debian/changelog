@@ -1,3 +1,9 @@
+vidrot (0.1-1~openismus8) jaunty; urgency=low
+
+  * control: Add the likely gstreamer plugins dependencies.
+
+ -- Murray Cumming <murrayc@murrayc.com>  Fri, 24 Jul 2009 01:37:11 +0200
+
 vidrot (0.1-1~openismus7) jaunty; urgency=low
 
   * Regenerate build files, as error crept into last change.
