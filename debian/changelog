@@ -1,4 +1,4 @@
-vidrot (0.1-1~openismus8) jaunty; urgency=low
+vidrot (0.1-1~openismus9) jaunty; urgency=low
 
   * control: Add the likely gstreamer plugins dependencies.
 
