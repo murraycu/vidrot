@@ -26,6 +26,13 @@ VidRotPreview::VidRotPreview() :
   m_video_height(0)
 {
   set_flags(Gtk::NO_WINDOW);
+
+#ifdef GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
+  signal_realize().connect( 
+    sigc::mem_fun(*this, &VidRotPreview::on_realize) );
+  signal_unrealize().connect( 
+    sigc::mem_fun(*this, &VidRotPreview::on_unrealize) );
+#endif //GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
 }
 
 VidRotPreview::~VidRotPreview()
@@ -62,6 +69,9 @@ void VidRotPreview::on_size_allocate(Gtk::Allocation& allocation)
 
 void VidRotPreview::on_size_request(Gtk::Requisition* requisition)
 {
+  if(!requisition)
+    return;
+
   *requisition = Gtk::Requisition();
 
   requisition->height = -1;
@@ -70,34 +80,39 @@ void VidRotPreview::on_size_request(Gtk::Requisition* requisition)
 
 void VidRotPreview::on_realize()
 {
+#ifdef GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
   Gtk::Widget::on_realize();
+#endif //GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
 
-  if(!m_gdkwindow)
-  {
-    GdkWindowAttr attributes;
-    memset(&attributes, 0, sizeof(attributes));
+  if(m_gdkwindow)
+    return;
+  
+  GdkWindowAttr attributes;
+  memset(&attributes, 0, sizeof(attributes));
 
-    const Gtk::Allocation allocation = get_allocation();
+  const Gtk::Allocation allocation = get_allocation();
 
-    attributes.x = allocation.get_x();
-    attributes.y = allocation.get_y();
-    attributes.width = allocation.get_width();
-    attributes.height = allocation.get_height();
-    attributes.event_mask = get_events() | Gdk::EXPOSURE_MASK;
-    attributes.window_type = GDK_WINDOW_CHILD;
-    attributes.wclass = GDK_INPUT_OUTPUT;
+  attributes.x = allocation.get_x();
+  attributes.y = allocation.get_y();
+  attributes.width = allocation.get_width();
+  attributes.height = allocation.get_height();
+  attributes.event_mask = get_events() | Gdk::EXPOSURE_MASK;
+  attributes.window_type = GDK_WINDOW_CHILD;
+  attributes.wclass = GDK_INPUT_OUTPUT;
 
-    m_gdkwindow = Gdk::Window::create(get_window(), &attributes, GDK_WA_X | GDK_WA_Y);
-    unset_flags(Gtk::NO_WINDOW);
-    set_window(m_gdkwindow);
-    m_gdkwindow->set_user_data(gobj());
-  }
+  m_gdkwindow = Gdk::Window::create(get_window(), &attributes, GDK_WA_X | GDK_WA_Y);
+  unset_flags(Gtk::NO_WINDOW);
+  set_window(m_gdkwindow);
+  m_gdkwindow->set_user_data(gobj());
 }
 
 void VidRotPreview::on_unrealize()
 {
   m_gdkwindow->clear();
+
+#ifdef GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
   Gtk::Widget::on_unrealize();
+#endif //GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
 }
 
 bool VidRotPreview::on_expose_event(GdkEventExpose* /* event */)

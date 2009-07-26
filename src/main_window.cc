@@ -175,8 +175,8 @@ void MainWindow::setup_widgets()
     G_USER_DIRECTORY_VIDEOS));
 
   // Attach signals to widgets.
-  m_button_filechooser.signal_file_set().connect(
-    sigc::mem_fun(*this, &MainWindow::on_file_selected));
+  //m_button_filechooser.signal_file_set().connect(
+  //  sigc::mem_fun(*this, &MainWindow::on_file_selected));
   m_button_convert.signal_clicked().connect(
     sigc::mem_fun(*this, &MainWindow::on_button_convert));
   m_button_stop.signal_clicked().connect(
@@ -428,32 +428,40 @@ void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
   else if(caps_audio != Glib::ustring::npos && caps_video == Glib::ustring::npos)
   {
     // Audio caps found.
+    #ifdef GLIBMM_EXCEPTIONS_ENABLED
     try
     {
+    #endif //GLIBMM_EXCEPTIONS_ENABLED
       Glib::RefPtr<Gst::Pad> sink_pad = m_bin_audio->get_static_pad("audsink");
       new_pad->link(sink_pad);
       m_bin_audio->set_state(Gst::STATE_PAUSED);
+    #ifdef GLIBMM_EXCEPTIONS_ENABLED
     }
     catch(const std::runtime_error& err)
     {
       std::cerr << _("Exception caught while linking added pad: ") << err.what() << std::endl;
     }
+    #endif //GLIBMM_EXCEPTIONS_ENABLED
   }
   else if(caps_audio == Glib::ustring::npos && caps_video != Glib::ustring::npos)
   {
     // Video caps found.
+    #ifdef GLIBMM_EXCEPTIONS_ENABLED
     try
     {
+    #endif //GLIBMM_EXCEPTIONS_ENABLED
       /* Link decodebin source to videoflip sink. Acquire sink pad from
          videoflip element. */
       Glib::RefPtr<Gst::Pad> sink_pad = m_bin_video->get_static_pad("vidsink");
       new_pad->link(sink_pad);
       m_bin_video->set_state(Gst::STATE_PAUSED);
+    #ifdef GLIBMM_EXCEPTIONS_ENABLED
     }
     catch(const std::runtime_error& err)
     {
       std::cerr << _("Exception caught while linking added pad: ") << err.what() << std::endl;
     }
+    #endif //GLIBMM_EXCEPTIONS_ENABLED
   }
   else
   {

@@ -1,3 +1,17 @@
+2009-07-26  Murray Cumming  <murrayc@murrayc.com>
+
+	Fix the build on maemo.
+
+	* Makefile.am:
+	* configure.ac: Move the deprecated symbols disabling MY_CFLAGS into 
+	the dkwarn.m4 --enable-warnings option so it is available but not the 
+	default. Making it the default just makes it unnecessarily hard to 
+	build from the tarball with new versions of libraries.
+
+	* src/main_window.cc:
+	* src/vidrot_preview.cc: Added ifdefs to hack around the build with 
+	the mameomm version of gktmm.
+
 2009-07-24  Murray Cumming  <murrayc@murrayc.com>
 
 	* debian/changelog:

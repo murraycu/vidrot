@@ -16,10 +16,6 @@ AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], ["$GETTEXT_PACKAGE"], [The domain to use with gettext.])
 AM_GLIB_GNU_GETTEXT
 
-# Disable deprecated features in libraries.
-MY_CFLAGS="-DGDK_DISABLE_DEPRECATED=1 -DGDK_PIXBUF_DISABLE_DEPRECATED=1 -DG_DISABLE_DEPRECATED=1 -DGLIBMM_DISABLE_DEPRECATED=1 -DGTK_DISABLE_DEPRECATED=1 -DGTKMM_DISABLE_DEPRECATED=1"
-AC_SUBST(MY_CFLAGS)
-
 # VidRot needs gst-plugins-bad for the mpeg2enc element, and gst-plugins-ugly
 # for the lame element.
 # They are not required at build time but are necessary at run time.
@@ -34,7 +30,7 @@ AC_LANG([C++])
 
 DK_ARG_ENABLE_WARNINGS([VIDROT_WARNINGS],
         [-Wall],
-        [-Wall -Wextra])
+        [-Wall -Wextra -DGDK_DISABLE_DEPRECATED=1 -DGDK_PIXBUF_DISABLE_DEPRECATED=1 -DG_DISABLE_DEPRECATED=1 -DGLIBMM_DISABLE_DEPRECATED=1 -DGTK_DISABLE_DEPRECATED=1 -DGTKMM_DISABLE_DEPRECATED=1])
 
 AC_CONFIG_FILES([
   Makefile
