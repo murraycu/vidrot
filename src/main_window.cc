@@ -68,7 +68,7 @@ static Glib::RefPtr<Gst::Element> create_element(const gchar* factory_name, cons
   if(!result)
   {
     std::cerr << "vidrot: Gst::ElementFactory::create_element(\"" << factory_name << "\") failed." << std::endl
-      << "  This can probably be corrected by intalling a particular gstreamer plugin library." << std::endl; 
+      << "  This can probably be corrected by installing a particular gstreamer plugin library." << std::endl; 
   }
   
   return result;
@@ -176,8 +176,12 @@ void MainWindow::setup_widgets()
     G_USER_DIRECTORY_VIDEOS));
 
   // Attach signals to widgets.
+  //This only works with gtkmm 2.16:
   //m_button_filechooser.signal_file_set().connect(
   //  sigc::mem_fun(*this, &MainWindow::on_file_selected));
+  g_object_set(m_button_filechooser.gobj(), "file-set",
+    &MainWindow::on_c_signal_file_selected, NULL);
+    
   m_button_convert.signal_clicked().connect(
     sigc::mem_fun(*this, &MainWindow::on_button_convert));
   m_button_stop.signal_clicked().connect(
@@ -238,13 +242,19 @@ void MainWindow::update_widget_sensitivity(bool processing)
   m_radio_anticlockwise.set_sensitive(!processing);
 }
 
+void MainWindow::on_c_signal_file_selected(GtkFileChooserButton* /* button */, void* user_data)
+{
+  // This C signal handler is used just because the signal was not wrapped yet in the 
+  // Maemo Fremantle gtkmm version (2.16):
+  MainWindow* self = (MainWindow*)user_data;
+  self->on_file_selected();
+}
+
 void MainWindow::on_file_selected()
 {
   const Glib::ustring uri = m_button_filechooser.get_uri();
   if(uri.empty())
-  {
     return;
-  }
 
   //std::cout << "debug: MainWindow::on_file_selected(): uri=" << uri << std::endl;
 

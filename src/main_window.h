@@ -51,6 +51,7 @@ class MainWindow : public Gtk::Window
     void offer_finished_file(const Glib::ustring& file_uri);
 
     // Signal handlers.
+    static void on_c_signal_file_selected(GtkFileChooserButton* button, void* user_data);
     void on_file_selected();
     void on_button_convert();
     void on_button_stop();
