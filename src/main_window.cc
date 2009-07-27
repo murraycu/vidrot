@@ -62,6 +62,18 @@ MainWindow::~MainWindow()
   m_pipeline->set_state(Gst::STATE_NULL);
 }
 
+static Glib::RefPtr<Gst::Element> create_element(const gchar* factory_name, const gchar* name)
+{
+  Glib::RefPtr<Gst::Element> result = Gst::ElementFactory::create_element(factory_name, name);
+  if(!result)
+  {
+    std::cerr << "vidrot: Gst::ElementFactory::create_element(\"" << factory_name << "\") failed." << std::endl
+      << "  This can probably be corrected by intalling a particular gstreamer plugin library." << std::endl; 
+  }
+  
+  return result;
+}
+
 // Create Gstreamermm elements and add to pipeline or bin.
 void MainWindow::create_elements()
 {
@@ -86,37 +98,26 @@ void MainWindow::create_elements()
   g_assert(m_queue_audio);
   m_bin_audio->add(m_queue_audio);
 
-  // Create elements using ElementFactory.
-  m_element_source = Gst::ElementFactory::create_element("uridecodebin",
-    "uri-source");
-  g_assert(m_element_source);
+  // Create elements using ElementFactory:
+  //
+  // Note that the element names here (the second parameter), are just to help 
+  // with debugging - they appear in the debug output when setting the 
+  // environemnt variable. For isntance, GST_DEBUG=3.
+  m_element_source = create_element("uridecodebin", "uri-source");
   m_pipeline->add(m_element_source);
-  m_element_colorspace = Gst::ElementFactory::create_element("ffmpegcolorspace",
-    "vid-colorspace");
-  g_assert(m_element_colorspace);
+  m_element_colorspace = create_element("ffmpegcolorspace", "vid-colorspace");
   m_bin_video->add(m_element_colorspace);
-  m_element_audconvert = Gst::ElementFactory::create_element("audioconvert",
-    "aud-convert");
-  g_assert(m_element_audconvert);
+  m_element_audconvert = create_element("audioconvert", "aud-convert");
   m_bin_audio->add(m_element_audconvert);
-  m_element_audcomp = Gst::ElementFactory::create_element("lame",
-    "audcomp-element");
-  g_assert(m_element_audcomp);
+  m_element_audcomp = create_element("lame", "audcomp-element");
   m_bin_audio->add(m_element_audcomp);
-  m_element_filter = Gst::ElementFactory::create_element("videoflip",
-    "filter-element");
-  g_assert(m_element_filter);
+  m_element_filter = create_element("videoflip", "filter-element");
   m_bin_video->add(m_element_filter);
-  m_element_vidrate = Gst::ElementFactory::create_element("videorate",
-    "vidrate");
-  g_assert(m_element_vidrate);
+  m_element_vidrate = create_element("videorate", "vidrate");
   m_bin_video->add(m_element_vidrate);
-  m_element_vidcomp = Gst::ElementFactory::create_element("mpeg2enc",
-    "vidcomp-element");
-  g_assert(m_element_vidcomp);
+  m_element_vidcomp = create_element("mpeg2enc", "vidcomp-element");
   m_bin_video->add(m_element_vidcomp);
-  m_element_mux = Gst::ElementFactory::create_element("avimux", "mux-element");
-  g_assert(m_element_mux);
+  m_element_mux = create_element("avimux", "mux-element");
   m_pipeline->add(m_element_mux);
   m_element_sink = Gst::FileSink::create("file-sink");
   g_assert(m_element_sink);
