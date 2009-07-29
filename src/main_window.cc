@@ -179,8 +179,8 @@ void MainWindow::setup_widgets()
   //This only works with gtkmm 2.16:
   //m_button_filechooser.signal_file_set().connect(
   //  sigc::mem_fun(*this, &MainWindow::on_file_selected));
-  g_object_set(m_button_filechooser.gobj(), "file-set",
-    &MainWindow::on_c_signal_file_selected, NULL);
+  g_signal_connect(m_button_filechooser.gobj(), "file-set",
+    (GCallback)&MainWindow::on_c_signal_file_selected, this /* user_data */);
     
   m_button_convert.signal_clicked().connect(
     sigc::mem_fun(*this, &MainWindow::on_button_convert));
