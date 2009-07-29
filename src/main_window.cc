@@ -380,15 +380,23 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
              gst_missing_plugin_message_get_description() to discover what is
              actually missing. */
           const Glib::Error error = message_warning->parse();
-          std::cout << _("Gstreamer warning: ") << error.what() << std::endl;
+          std::cerr << "Gstreamer warning: error domain=" << error.domain() << ", error code=" << error.code() << ", message=" << error.what() << std::endl;
+
+          if(error.domain() == GST_STREAM_ERROR)
+            std::cerr << "  (The warning's error domain = GST_STREAM_ERROR)" << std::endl;
+          //It could also be GST_RESOURCE_ERROR, GST_LIBRARY_ERROR, or GST_CORE_ERROR.
+
+          gchar* debug_error_msg = gst_error_get_message(error.domain(), error.code());
+          std::cerr << "  gst_error_get_message() says: " << debug_error_msg << std::endl;
+          g_free(debug_error_msg);
 
           if(gst_is_missing_plugin_message(message_warning->gobj()))
           {
-            std::cout << "debug: Is Missing Plugin message" << std::endl;
+            std::cout << "  debug: Is a Missing Plugin message" << std::endl;
           }
           else
           {
-            std::cout << "debug: Is not Missing Plugin message" << std::endl;
+            std::cout << "  debug: Is not a Missing Plugin message" << std::endl;
           }
 
           return false; // These warnings seem to be errors.
