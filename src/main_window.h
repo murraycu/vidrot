@@ -47,7 +47,8 @@ class MainWindow : public Gtk::Window
     void create_elements();
     void link_elements();
     void setup_widgets();
-    void update_widget_sensitivity(bool processing);
+    void respond_to_file_selection(const Glib::ustring& uri);
+    void update_widget_sensitivity(bool processing, bool have_uri);
     void offer_finished_file(const Glib::ustring& file_uri);
 
     // Signal handlers.

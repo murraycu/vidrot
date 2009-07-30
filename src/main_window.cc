@@ -160,7 +160,6 @@ void MainWindow::link_elements()
 // TODO: Use Glade/Gtk::Builder for most of this.
 void MainWindow::setup_widgets()
 {
-
   // Filter videos for FileChooserButton.
   Gtk::FileFilter filter_video;
   filter_video.set_name(_("Video files"));
@@ -179,8 +178,8 @@ void MainWindow::setup_widgets()
   //This only works with gtkmm 2.16:
   //m_button_filechooser.signal_file_set().connect(
   //  sigc::mem_fun(*this, &MainWindow::on_file_selected));
-  g_object_set(m_button_filechooser.gobj(), "file-set",
-    &MainWindow::on_c_signal_file_selected, NULL);
+  g_signal_connect(m_button_filechooser.gobj(), "file-set",
+    (GCallback)&MainWindow::on_c_signal_file_selected, this /* user_data */);
     
   m_button_convert.signal_clicked().connect(
     sigc::mem_fun(*this, &MainWindow::on_button_convert));
@@ -223,15 +222,12 @@ void MainWindow::setup_widgets()
 
   add(m_vbox);
 
-  update_widget_sensitivity(false);
+  update_widget_sensitivity(false /* processing */, false /* have_uri */);
 }
 
 // TODO: Replace the boolean argument with something sane.
-void MainWindow::update_widget_sensitivity(bool processing)
+void MainWindow::update_widget_sensitivity(bool processing, bool have_uri)
 {
-  const Glib::ustring uri = m_button_filechooser.get_uri();
-  const bool have_uri = !(uri.empty());
-
   m_button_stop.set_sensitive(processing);
 
   m_button_quit.set_sensitive(!processing);
@@ -252,7 +248,12 @@ void MainWindow::on_c_signal_file_selected(GtkFileChooserButton* /* button */, v
 
 void MainWindow::on_file_selected()
 {
-  const Glib::ustring uri = m_button_filechooser.get_uri();
+ const Glib::ustring uri = m_button_filechooser.get_uri();
+ respond_to_file_selection(uri);
+}
+
+void MainWindow::respond_to_file_selection(const Glib::ustring& uri)
+{
   if(uri.empty())
     return;
 
@@ -270,7 +271,7 @@ void MainWindow::on_file_selected()
   // Set preview size to 0, add probe so that first buffer sets preview size.
   m_video_area.set_size_request(0, 0);
 
-  update_widget_sensitivity(false /* not processing */);
+  update_widget_sensitivity(false /* not processing */, !uri.empty());
 }
 
 void MainWindow::on_button_convert()
@@ -300,7 +301,7 @@ void MainWindow::on_button_stop()
   m_progress_convert.set_text("");
 
   // Update the button sensitivity.
-  update_widget_sensitivity(false /* not processing */);
+  update_widget_sensitivity(false /* not processing */, true /* have_uri */);
 }
 
 // Process asynchronous bus messages.
@@ -313,7 +314,7 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
       std::clog << "End of stream" << std::endl;
       m_pipeline->set_state(Gst::STATE_NULL);
       m_timeout_connection.disconnect();
-      update_widget_sensitivity(false /* not processing */);
+      update_widget_sensitivity(false /* not processing */, true /* have_uri */);
       m_progress_convert.set_fraction(1.0);
       m_progress_convert.set_text(_("Conversion complete."));
 
@@ -348,7 +349,7 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
         {
           if(message_statechange->parse() == Gst::STATE_PLAYING)
           {
-            update_widget_sensitivity(true /* processing */);
+            update_widget_sensitivity(true /* processing */, true /* have_uri */);
             m_progress_convert.set_text(_("Conversion progress"));
             m_timeout_connection = Glib::signal_timeout().connect_seconds(
               sigc::mem_fun(*this, &MainWindow::on_convert_timeout), 1);
@@ -379,15 +380,23 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
              gst_missing_plugin_message_get_description() to discover what is
              actually missing. */
           const Glib::Error error = message_warning->parse();
-          std::cout << _("Gstreamer warning: ") << error.what() << std::endl;
+          std::cerr << "Gstreamer warning: error domain=" << error.domain() << ", error code=" << error.code() << ", message=" << error.what() << std::endl;
+
+          if(error.domain() == GST_STREAM_ERROR)
+            std::cerr << "  (The warning's error domain = GST_STREAM_ERROR)" << std::endl;
+          //It could also be GST_RESOURCE_ERROR, GST_LIBRARY_ERROR, or GST_CORE_ERROR.
+
+          gchar* debug_error_msg = gst_error_get_message(error.domain(), error.code());
+          std::cerr << "  gst_error_get_message() says: " << debug_error_msg << std::endl;
+          g_free(debug_error_msg);
 
           if(gst_is_missing_plugin_message(message_warning->gobj()))
           {
-            std::cout << "debug: Is Missing Plugin message" << std::endl;
+            std::cout << "  debug: Is a Missing Plugin message" << std::endl;
           }
           else
           {
-            std::cout << "debug: Is not Missing Plugin message" << std::endl;
+            std::cout << "  debug: Is not a Missing Plugin message" << std::endl;
           }
 
           return false; // These warnings seem to be errors.
@@ -517,8 +526,12 @@ void MainWindow::set_file_uri(const Glib::ustring& file_uri)
 {
   //std::cout << "debug: MainWindow::set_file_uri(): URI=" << file_uri << std::endl;
   m_button_filechooser.select_uri(file_uri);
-  //std::cout << "debug: MainWindow::set_file_uri(): test=" << test << ", get URI=" << m_button_filechooser.get_uri() << std::endl;
-  on_file_selected();
+  //std::cout << "debug: MainWindow::set_file_uri(): file_uri=" << file_uri << ", get URI=" << m_button_filechooser.get_uri() << std::endl;
+
+  // Note that we don't just call on_file_selected(), 
+  // because that apparently fails to get the selected URI from the 
+  // GtkFileChooserButton before the GtkFileChooserButton is realized. TODO: File a GTK+ bug with a test case.
+  respond_to_file_selection(file_uri);
 }
 
 // TODO: Remove dialog.
