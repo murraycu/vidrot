@@ -93,10 +93,13 @@ void MainWindow::create_elements()
   m_pipeline->add(m_bin_audio);
 
   // Create Queue elements.
-  // TODO: Explain why these queues are needed and what they do.
+  // These force the use of a separate thread for the subsequent linked elements,
+  // and is recommended for multiplexing.
+  // See http://gstreamer.freedesktop.org/data/doc/gstreamer/head/manual/html/chapter-threads.html
   m_queue_video = Gst::Queue::create("video-queue");
-  g_assert(m_queue_video);
+  g_assert(m_queue_video);  
   m_bin_video->add(m_queue_video);
+  
   m_queue_audio = Gst::Queue::create("audio-queue");
   g_assert(m_queue_audio);
   m_bin_audio->add(m_queue_audio);
@@ -177,11 +180,9 @@ void MainWindow::link_elements()
 
   // Ghost pad setup for audio and video bins.
   // This provides pads for the bins based on the pads for the start and end 
-  // child elements.
-  //
-  // TODO: I guess these ghostpad names (audsrc, vidsink, etc) are standard, rather than arbitrary, 
-  // or else how could m_bin_video->link() know what to do. If so, where are these names defined/documented? murrayc.
-  // 
+  // child elements. The ghost pad names are just for debugging output.
+  // The bins will then be liked (for intance, m_bin_video->link()) based on 
+  // the capabilities of these pads.
   // TODO: Add GhostPad::create(name, element, element_pad_name)?
   //  or even Bin::add_ghost_pad(name, element, element_pad_name)?
   Glib::RefPtr<Gst::Pad> bin_audio_sink =
