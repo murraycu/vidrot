@@ -165,8 +165,8 @@ void MainWindow::link_elements()
     sigc::mem_fun(*this, &MainWindow::on_no_more_pads));
 
   // Link video elements (in the video bin).
-  /* Must link decode to filter after stream has been identified.
-     What happens if there is no audio stream? */
+  // We may only link the decoder to the filter after the stream has been identified.
+  // TODO:  What happens if there is no audio stream?
   m_element_colorspace
     ->link(m_element_filter)
     ->link(m_element_vidrate)
@@ -180,24 +180,14 @@ void MainWindow::link_elements()
 
   // Ghost pad setup for audio and video bins.
   // This provides pads for the bins based on the pads for the start and end 
-  // child elements. The ghost pad names are just for debugging output.
-  // The bins will then be liked (for intance, m_bin_video->link()) based on 
+  // child elements. The ghost pad names (the last parameter) are just for debugging output.
+  // The bins will then be linked (for instance, m_bin_video->link()) based on 
   // the capabilities of these pads.
-  // TODO: Add GhostPad::create(name, element, element_pad_name)?
-  //  or even Bin::add_ghost_pad(name, element, element_pad_name)?
-  Glib::RefPtr<Gst::Pad> bin_audio_sink =
-    m_element_audconvert->get_static_pad("sink");
-  m_bin_audio->add_pad(Gst::GhostPad::create("audsink", bin_audio_sink));
-
-  Glib::RefPtr<Gst::Pad> bin_audio_src = m_queue_audio->get_static_pad("src");
-  m_bin_audio->add_pad(Gst::GhostPad::create("audsrc", bin_audio_src));
-
-  Glib::RefPtr<Gst::Pad> bin_video_sink =
-    m_element_colorspace->get_static_pad("sink");
-  m_bin_video->add_pad(Gst::GhostPad::create("vidsink", bin_video_sink));
-
-  Glib::RefPtr<Gst::Pad> bin_video_src = m_queue_video->get_static_pad("src");
-  m_bin_video->add_pad(Gst::GhostPad::create("vidsrc", bin_video_src));
+  // TODO: Why can't Bin just do this automatically for the first and last elements?
+  m_bin_audio->add_ghost_pad(m_element_audconvert, "sink", "audsink")
+  m_bin_audio->add_ghost_pad(m_queue_audio, "src", "audsrc");
+  m_bin_video->add_ghost_pad(m_element_colorspace, "sink", "vidsink");
+  m_bin_video->add_ghost_pad(m_queue_video, "src", "vidsrc");
 
   // Link bin src pads to AVI muxer.
   m_bin_video->link(m_element_mux);

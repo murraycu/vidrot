@@ -1,5 +1,10 @@
 2009-07-30  Murray Cumming  <murrayc@murrayc.com>
 
+	* src/main_window.cc: link_elements(): Use the new Bin::add_ghost_pad() 
+	method to simplify the code.
+
+2009-07-30  Murray Cumming  <murrayc@murrayc.com>
+
 	More debug output for warnings.
 
 	* src/main_window.cc: on_bus_message(): MessageWarning handling: 
