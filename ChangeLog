@@ -1,5 +1,9 @@
 2009-07-30  Murray Cumming  <murrayc@murrayc.com>
 
+	* src/main_window.cc: Added some explanatory comments.
+
+2009-07-30  Murray Cumming  <murrayc@murrayc.com>
+
 	* src/main_window.cc: on_bus_message(): MessageWarning handling: 
 	Add more debug output, which suggests that we are trying to provide an 
 	element with a stream type that it cannot support, so this might not 

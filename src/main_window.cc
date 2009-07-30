@@ -82,7 +82,9 @@ void MainWindow::create_elements()
   m_watch_id = bus->add_watch(
     sigc::mem_fun(*this, &MainWindow::on_bus_message));
 
-  // Create Bins for audio and video filtering.
+  // Create Bins for audio and video filtering, and add it to the pipeline.
+  // A bin is a collection of linked elements that can then be dealt 
+  // with as if it is an element.
   m_bin_video = Gst::Bin::create("video-bin");
   g_assert(m_bin_video);
   m_pipeline->add(m_bin_video);
@@ -91,6 +93,7 @@ void MainWindow::create_elements()
   m_pipeline->add(m_bin_audio);
 
   // Create Queue elements.
+  // TODO: Explain why these queues are needed and what they do.
   m_queue_video = Gst::Queue::create("video-queue");
   g_assert(m_queue_video);
   m_bin_video->add(m_queue_video);
@@ -102,23 +105,47 @@ void MainWindow::create_elements()
   //
   // Note that the element names here (the second parameter), are just to help 
   // with debugging - they appear in the debug output when setting the 
-  // environemnt variable. For isntance, GST_DEBUG=3.
+  // environment variable. For instance, GST_DEBUG=3.
+
+  // uridecodebin decodes data from a URI into raw media, 
+  // automatically using appropriate plugin elements if they exist.
+  // If this can't handle our URI then a plugin may be missing.
   m_element_source = create_element("uridecodebin", "uri-source");
   m_pipeline->add(m_element_source);
+
+  // ffmpegcolorspace converts video from one colorspace to another.
   m_element_colorspace = create_element("ffmpegcolorspace", "vid-colorspace");
   m_bin_video->add(m_element_colorspace);
+
+  // audioconvert converts audio to different formats.
   m_element_audconvert = create_element("audioconvert", "aud-convert");
   m_bin_audio->add(m_element_audconvert);
+
+  // TODO: The following suggests that we always _encode_ as MP3 + MPEG, 
+  // regardless of the input format. But we should encode in the same format, 
+  // with the same settings. murrayc.
+
+  // lame is an MP3 encoder.
   m_element_audcomp = create_element("lame", "audcomp-element");
   m_bin_audio->add(m_element_audcomp);
+
+  // videoflip flips and rotates video.
   m_element_filter = create_element("videoflip", "filter-element");
   m_bin_video->add(m_element_filter);
+
+  // videorate adjusts the framerate of video.
   m_element_vidrate = create_element("videorate", "vidrate");
   m_bin_video->add(m_element_vidrate);
+
+  // mpeg2enc encodes MPEG-1/2 video.
   m_element_vidcomp = create_element("mpeg2enc", "vidcomp-element");
   m_bin_video->add(m_element_vidcomp);
+
+  // avimux muxes audio and video into an avi stream.
   m_element_mux = create_element("avimux", "mux-element");
   m_pipeline->add(m_element_mux);
+
+  // file-sink write the stream to a file.
   m_element_sink = Gst::FileSink::create("file-sink");
   g_assert(m_element_sink);
   m_pipeline->add(m_element_sink);
@@ -127,33 +154,55 @@ void MainWindow::create_elements()
 // Link pipeline elements together.
 void MainWindow::link_elements()
 {
-  // Dynamically link uridecodebin to audio and video processing bins.
+  // Dynamically (later) link uridecodebin to audio and video processing bins.
+  // We can't do this now because the uridecodebin pads don't exist yet.
   m_element_source->signal_pad_added().connect(
     sigc::mem_fun(*this, &MainWindow::on_decode_pad_added));
   m_element_source->signal_no_more_pads().connect(
     sigc::mem_fun(*this, &MainWindow::on_no_more_pads));
 
+  // Link video elements (in the video bin).
   /* Must link decode to filter after stream has been identified.
      What happens if there is no audio stream? */
-  m_element_colorspace->link(m_element_filter)->link(m_element_vidrate)->link(
-    m_element_vidcomp)->link(m_queue_video);
-  m_element_audconvert->link(m_element_audcomp)->link(m_queue_audio);
+  m_element_colorspace
+    ->link(m_element_filter)
+    ->link(m_element_vidrate)
+    ->link(m_element_vidcomp)
+    ->link(m_queue_video);
+
+  // Link audio elements (in the audio bin)
+  m_element_audconvert
+    ->link(m_element_audcomp)
+    ->link(m_queue_audio);
 
   // Ghost pad setup for audio and video bins.
+  // This provides pads for the bins based on the pads for the start and end 
+  // child elements.
+  //
+  // TODO: I guess these ghostpad names (audsrc, vidsink, etc) are standard, rather than arbitrary, 
+  // or else how could m_bin_video->link() know what to do. If so, where are these names defined/documented? murrayc.
+  // 
+  // TODO: Add GhostPad::create(name, element, element_pad_name)?
+  //  or even Bin::add_ghost_pad(name, element, element_pad_name)?
   Glib::RefPtr<Gst::Pad> bin_audio_sink =
     m_element_audconvert->get_static_pad("sink");
   m_bin_audio->add_pad(Gst::GhostPad::create("audsink", bin_audio_sink));
+
   Glib::RefPtr<Gst::Pad> bin_audio_src = m_queue_audio->get_static_pad("src");
   m_bin_audio->add_pad(Gst::GhostPad::create("audsrc", bin_audio_src));
+
   Glib::RefPtr<Gst::Pad> bin_video_sink =
     m_element_colorspace->get_static_pad("sink");
   m_bin_video->add_pad(Gst::GhostPad::create("vidsink", bin_video_sink));
+
   Glib::RefPtr<Gst::Pad> bin_video_src = m_queue_video->get_static_pad("src");
   m_bin_video->add_pad(Gst::GhostPad::create("vidsrc", bin_video_src));
 
   // Link bin src pads to AVI muxer.
   m_bin_video->link(m_element_mux);
   m_bin_audio->link(m_element_mux);
+
+  // Link muxed pads to the sink, which will write the stream to disk:
   m_element_mux->link(m_element_sink);
 }
 
@@ -175,9 +224,9 @@ void MainWindow::setup_widgets()
     G_USER_DIRECTORY_VIDEOS));
 
   // Attach signals to widgets.
-  //This only works with gtkmm 2.16:
-  //m_button_filechooser.signal_file_set().connect(
-  //  sigc::mem_fun(*this, &MainWindow::on_file_selected));
+  // This only works with gtkmm 2.16:
+  // m_button_filechooser.signal_file_set().connect(
+  //   sigc::mem_fun(*this, &MainWindow::on_file_selected));
   g_signal_connect(m_button_filechooser.gobj(), "file-set",
     (GCallback)&MainWindow::on_c_signal_file_selected, this /* user_data */);
     
@@ -264,7 +313,7 @@ void MainWindow::respond_to_file_selection(const Glib::ustring& uri)
   m_element_source->set_property("uri", uri);
   m_element_source->set_state(Gst::STATE_PAUSED);
 
-  // TODO: Write to same file.
+  // TODO: Write to same file. (when we output to the same format as the input.)
   m_element_sink->set_uri(uri + ".new");
   m_progress_convert.set_fraction(0.0);
 
