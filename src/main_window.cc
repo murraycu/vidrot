@@ -430,7 +430,9 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
              gst_missing_plugin_message_get_description() to discover what is
              actually missing. */
           const Glib::Error error = message_warning->parse();
-          std::cerr << "Gstreamer warning: error domain=" << error.domain() << ", error code=" << error.code() << ", message=" << error.what() << std::endl;
+          const Glib::RefPtr<Gst::Object> source = message->get_source();
+          std::cerr << "Gstreamer warning from element with name=" << (source ? source->get_name() : "(no source element)") << std::endl
+            << "  error domain=" << error.domain() << ", error code=" << error.code() << ", message=" << error.what() << std::endl;
 
           if(error.domain() == GST_STREAM_ERROR)
             std::cerr << "  (The warning's error domain = GST_STREAM_ERROR)" << std::endl;

@@ -1,5 +1,13 @@
 2009-07-30  Murray Cumming  <murrayc@murrayc.com>
 
+	More debug output for warnings.
+
+	* src/main_window.cc: on_bus_message(): MessageWarning handling: 
+	Use Message::get_source() and Object::get_name() to say what element 
+	has a problem in the debug output.
+
+2009-07-30  Murray Cumming  <murrayc@murrayc.com>
+
 	* src/main_window.cc: Added some explanatory comments.
 
 2009-07-30  Murray Cumming  <murrayc@murrayc.com>
