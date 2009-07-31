@@ -1,3 +1,13 @@
+2009-07-31  Murray Cumming  <murrayc@murrayc.com>
+
+	Show the file-is-ready dialog again.
+	
+	* src/main_window.cc: offer_finished_file(): Uncomment the code to show 
+	the dialog so the user knows what happened and can view the result. Added TODO 
+	saying what needs to be done to make this nicer.
+	* debian/control: Add a dependency on gvfs. I know of no way to do this in 
+	configure.ac.
+
 2009-07-30  Murray Cumming  <murrayc@murrayc.com>
 
 	* src/main_window.cc: link_elements(): Use the new Bin::add_ghost_pad() 

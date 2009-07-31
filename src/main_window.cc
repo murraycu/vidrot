@@ -576,10 +576,12 @@ void MainWindow::set_file_uri(const Glib::ustring& file_uri)
   respond_to_file_selection(file_uri);
 }
 
-// TODO: Remove dialog.
+// TODO: Remove this dialog when
+// 1. We show a preview of the transformed file, to show the user what has been done.
+// 2. We change the existing file instead of creating a new file, when we can 
+// write the file in the original format instead of an arbitrary format.
 void MainWindow::offer_finished_file(const Glib::ustring& file_uri)
 {
-#if 0
   std::cout << "debug: MainWindow::offer_finished_file(): file_uri=" <<
     file_uri << std::endl;
 
@@ -598,6 +600,13 @@ void MainWindow::offer_finished_file(const Glib::ustring& file_uri)
     return;
   }
 
+  // Note that this requires this application to explicitly depend on gvfs,
+  // (which has no pkg-config file, so it's an issue for package files such as 
+  // debian/control), 
+  // because GTK+ chooses not to explicitly depend on gvfs because of its D-Bus 
+  // dependency.
+  // It's theoretically possible for this to fail on a system that has a 
+  // strangely-built gvfs.
   GError* gerror = 0;
   if(!gtk_show_uri(0 /* screen */, file_uri.c_str(), GDK_CURRENT_TIME, &gerror))
   {
@@ -614,5 +623,4 @@ void MainWindow::offer_finished_file(const Glib::ustring& file_uri)
       _("An error occurred while trying to open the file. This may be a problem with the configuration of your system."));
     dialog.run();
   }
-#endif /* 0 */
 }

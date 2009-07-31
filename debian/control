@@ -9,7 +9,7 @@ Homepage: http://github.com/amigadave/vidrot/tree/master
 Package: vidrot
 Section: video
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libgstreamermm-0.10-2 (>= 0.10.2~openismus0), libgtkmm-2.4-1c2a (>= 1:2.12.0),  gstreamer0.10-plugins-good, gstreamer0.10-plugins-bad, gstreamer0.10-plugins-ugly,  gstreamer0.10-plugins-ugly-multiverse
+Depends: ${shlibs:Depends}, ${misc:Depends}, libgstreamermm-0.10-2 (>= 0.10.2~openismus0), libgtkmm-2.4-1c2a (>= 1:2.12.0),  gstreamer0.10-plugins-good, gstreamer0.10-plugins-bad, gstreamer0.10-plugins-ugly,  gstreamer0.10-plugins-ugly-multiverse, gvfs
 Description: Video rotation application
  A Gtkmm/GStreamermm application to rotate videos
 
