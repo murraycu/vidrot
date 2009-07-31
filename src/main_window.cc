@@ -1,4 +1,4 @@
-/* VidRot is copyright David King, 2009
+/* VidRot is copyright Openismus GmbH, 2009
  *
  * This file is part of VidRot
  *
@@ -184,7 +184,7 @@ void MainWindow::link_elements()
   // The bins will then be linked (for instance, m_bin_video->link()) based on 
   // the capabilities of these pads.
   // TODO: Why can't Bin just do this automatically for the first and last elements?
-  m_bin_audio->add_ghost_pad(m_element_audconvert, "sink", "audsink")
+  m_bin_audio->add_ghost_pad(m_element_audconvert, "sink", "audsink");
   m_bin_audio->add_ghost_pad(m_queue_audio, "src", "audsrc");
   m_bin_video->add_ghost_pad(m_element_colorspace, "sink", "vidsink");
   m_bin_video->add_ghost_pad(m_queue_video, "src", "vidsrc");

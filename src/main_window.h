@@ -1,4 +1,4 @@
-/* VidRot is copyright David King, 2009
+/* VidRot is copyright Openismus GmbH, 2009
  *
  * This file is part of VidRot
  *
