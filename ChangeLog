@@ -1,3 +1,13 @@
+2009-08-02  Murray Cumming  <murrayc@murrayc.com>
+
+	Warn about some missing gstreamer elements.
+
+	* src/main_window.[h|cc]: create_elements(): Return a bool and a list 
+	of missing gstreamer elements. constructor(): Show an error dialog 
+	if element cannot be created, saying that the installation is incomplete. 
+	We should not hard-code element names anyway, but this will help while 
+	we do.
+
 2009-07-31  Murray Cumming  <murrayc@murrayc.com>
 
 	Show the file-is-ready dialog again.

@@ -48,7 +48,20 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
   set_border_width(12);
 
   // Call helper functions to setup Gstreamermm pipeline and Gtkmm widgets.
-  create_elements();
+  Glib::ustring missing_elements;
+  const bool created = create_elements(missing_elements);
+  if(!created)
+  {
+     Gtk::MessageDialog dialog(*this, _("Incomplete Installation"),
+       false, Gtk::MESSAGE_ERROR);
+     const Glib::ustring message = Glib::ustring::compose(
+       _("Your vidrot installation is incomplete. Please contact your system administrator or distribution.\n\nThese gstreamer elements could not be created: %1"), 
+        missing_elements);
+     dialog.set_secondary_text(message);
+     dialog.run();
+     //TODO: Stop the program.
+  }
+
   link_elements();
   setup_widgets();
 
@@ -62,11 +75,19 @@ MainWindow::~MainWindow()
   m_pipeline->set_state(Gst::STATE_NULL);
 }
 
-static Glib::RefPtr<Gst::Element> create_element(const gchar* factory_name, const gchar* name)
+static Glib::RefPtr<Gst::Element> create_element(const gchar* factory_name, const gchar* name, Glib::ustring& missing_elements)
 {
+  g_assert(factory_name);
+
   Glib::RefPtr<Gst::Element> result = Gst::ElementFactory::create_element(factory_name, name);
   if(!result)
   {
+    //TODO: Just add these to a std::vector<ustring> so we can translate the message properly.
+    if(!missing_elements.empty())
+      missing_elements += ", ";
+
+    missing_elements += factory_name;
+
     std::cerr << "vidrot: Gst::ElementFactory::create_element(\"" << factory_name << "\") failed." << std::endl
       << "  This can probably be corrected by installing a particular gstreamer plugin library." << std::endl; 
   }
@@ -75,8 +96,11 @@ static Glib::RefPtr<Gst::Element> create_element(const gchar* factory_name, cons
 }
 
 // Create Gstreamermm elements and add to pipeline or bin.
-void MainWindow::create_elements()
+bool MainWindow::create_elements(Glib::ustring& missing_elements)
 {
+  //Initialize output parameter:
+  missing_elements =  Glib::ustring();
+
   // Attach watcher to message bus.
   Glib::RefPtr<Gst::Bus> bus = m_pipeline->get_bus();
   m_watch_id = bus->add_watch(
@@ -113,45 +137,63 @@ void MainWindow::create_elements()
   // uridecodebin decodes data from a URI into raw media, 
   // automatically using appropriate plugin elements if they exist.
   // If this can't handle our URI then a plugin may be missing.
-  m_element_source = create_element("uridecodebin", "uri-source");
-  m_pipeline->add(m_element_source);
+  m_element_source = create_element("uridecodebin", "uri-source", 
+    missing_elements);
+  if(m_element_source)
+    m_pipeline->add(m_element_source);
 
   // ffmpegcolorspace converts video from one colorspace to another.
-  m_element_colorspace = create_element("ffmpegcolorspace", "vid-colorspace");
-  m_bin_video->add(m_element_colorspace);
+  m_element_colorspace = create_element("ffmpegcolorspace", "vid-colorspace", 
+    missing_elements);
+  if(m_element_colorspace)
+    m_bin_video->add(m_element_colorspace);
 
   // audioconvert converts audio to different formats.
-  m_element_audconvert = create_element("audioconvert", "aud-convert");
-  m_bin_audio->add(m_element_audconvert);
+  m_element_audconvert = create_element("audioconvert", "aud-convert", 
+    missing_elements);
+  if(m_element_audconvert)
+    m_bin_audio->add(m_element_audconvert);
 
   // TODO: The following suggests that we always _encode_ as MP3 + MPEG, 
   // regardless of the input format. But we should encode in the same format, 
   // with the same settings. murrayc.
 
   // lame is an MP3 encoder.
-  m_element_audcomp = create_element("lame", "audcomp-element");
-  m_bin_audio->add(m_element_audcomp);
+  m_element_audcomp = create_element("lame", "audcomp-element", 
+    missing_elements);
+  if(m_element_audcomp)
+    m_bin_audio->add(m_element_audcomp);
 
   // videoflip flips and rotates video.
-  m_element_filter = create_element("videoflip", "filter-element");
-  m_bin_video->add(m_element_filter);
+  m_element_filter = create_element("videoflip", "filter-element", 
+    missing_elements);
+  if(m_element_filter)
+    m_bin_video->add(m_element_filter);
 
   // videorate adjusts the framerate of video.
-  m_element_vidrate = create_element("videorate", "vidrate");
-  m_bin_video->add(m_element_vidrate);
+  m_element_vidrate = create_element("videorate", "vidrate", 
+    missing_elements);
+  if(m_element_vidrate)
+    m_bin_video->add(m_element_vidrate);
 
   // mpeg2enc encodes MPEG-1/2 video.
-  m_element_vidcomp = create_element("mpeg2enc", "vidcomp-element");
-  m_bin_video->add(m_element_vidcomp);
+  m_element_vidcomp = create_element("mpeg2enc", "vidcomp-element", 
+    missing_elements);
+  if(m_element_vidcomp)
+    m_bin_video->add(m_element_vidcomp);
 
   // avimux muxes audio and video into an avi stream.
-  m_element_mux = create_element("avimux", "mux-element");
-  m_pipeline->add(m_element_mux);
+  m_element_mux = create_element("avimux", "mux-element", 
+    missing_elements);
+  if(m_element_mux)
+    m_pipeline->add(m_element_mux);
 
   // file-sink write the stream to a file.
   m_element_sink = Gst::FileSink::create("file-sink");
   g_assert(m_element_sink);
   m_pipeline->add(m_element_sink);
+
+  return missing_elements.empty();
 }
 
 // Link pipeline elements together.
@@ -554,7 +596,7 @@ bool MainWindow::on_convert_timeout()
 
     const int seconds_remaining = time_remaining.elapsed() / fraction;
     const Glib::ustring conversion_status = 
-     Glib::ustring::compose("Time remaining: %1:%2", 
+     Glib::ustring::compose(_("Time remaining: %1:%2"), 
        seconds_remaining / 60, 
        seconds_remaining % 60);
     m_progress_convert.set_text(conversion_status);

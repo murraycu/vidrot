@@ -44,7 +44,7 @@ class MainWindow : public Gtk::Window
     void set_file_uri(const Glib::ustring& file_uri);
 
   private:
-    void create_elements();
+    bool create_elements(Glib::ustring& missing_elements);
     void link_elements();
     void setup_widgets();
     void respond_to_file_selection(const Glib::ustring& uri);
