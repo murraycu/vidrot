@@ -287,6 +287,7 @@ void MainWindow::setup_widgets()
   hbox->pack_start(m_button_filechooser, Gtk::PACK_EXPAND_WIDGET);
   m_vbox.pack_start(*hbox, Gtk::PACK_SHRINK);
 
+  //Commented-out until the video preview works:
   //m_vbox.pack_start(m_video_area, Gtk::PACK_EXPAND_WIDGET);
   m_vbox.pack_start(m_radio_anticlockwise, Gtk::PACK_SHRINK);
   m_vbox.pack_start(m_radio_clockwise, Gtk::PACK_SHRINK);
@@ -370,6 +371,43 @@ void MainWindow::on_button_convert()
 void MainWindow::on_button_quit()
 {
   hide();
+}
+
+static void on_taglist_foreach(const Glib::ustring& tag, const Gst::TagList& tag_list)
+{
+  //TODO: This is just debug output. 
+  //TODO: We should get and remember some common-tags such as encoding and bitrate.
+  std::cout << "  DEBUG: Tag: " << tag << std::endl 
+    << "    nick: " << tag_list.get_nick(tag) << std::endl
+    << "    description: " << tag_list.get_description(tag) << std::endl;
+
+  const GType type = tag_list.get_type(tag);
+  switch(type)
+  {
+    case G_TYPE_STRING:
+    {
+      Glib::ustring val;
+      tag_list.get(tag, val);
+      std::cout << "  value=" << val << std::endl;
+      break;
+    }
+    case G_TYPE_INT:
+    {
+      int val = 0;
+      tag_list.get(tag, val);
+      std::cout << "  value=" << val << std::endl;
+      break;
+    }
+    case G_TYPE_UINT:
+    {
+      guint val = 0;
+      tag_list.get(tag, val);
+      std::cout << "  value=" << val << std::endl;
+      break;
+    }
+    default:
+      std::cout << "on_taglist_foreach(): Unhandled tag type." << std::endl;
+  }
 }
 
 void MainWindow::on_button_stop()
@@ -489,21 +527,40 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
       }
     case Gst::MESSAGE_ELEMENT:
       {
-         Glib::RefPtr<Gst::MessageElement> message_element =
-           Glib::RefPtr<Gst::MessageElement>::cast_dynamic(message);
-         if(message_element)
-         {
-           /* TODO: Are we allowed to do block or even show UI here?
-              If not, we can do it in an idle callback. */
-           gchar* description = gst_missing_plugin_message_get_description(
-             message_element->gobj());
-           Gtk::MessageDialog dialog(*this, _("Missing GStreamer Plugin"),
-             false, Gtk::MESSAGE_ERROR);
-           dialog.set_secondary_text(description);
-           g_free(description);
-           dialog.run();
-           return false;
-         }
+        Glib::RefPtr<Gst::MessageElement> message_element =
+          Glib::RefPtr<Gst::MessageElement>::cast_dynamic(message);
+        if(message_element)
+        {
+          /* TODO: Are we allowed to do block or even show UI here?
+             If not, we can do it in an idle callback. */
+          gchar* description = gst_missing_plugin_message_get_description(
+            message_element->gobj());
+          Gtk::MessageDialog dialog(*this, _("Missing GStreamer Plugin"),
+            false, Gtk::MESSAGE_ERROR);
+          dialog.set_secondary_text(description);
+          g_free(description);
+          dialog.run();
+          return false;
+        }
+
+        break;
+      }
+    case Gst::MESSAGE_TAG:
+      {
+        Glib::RefPtr<Gst::MessageTag> message_tag =
+           Glib::RefPtr<Gst::MessageTag>::cast_dynamic(message);
+        if(message_tag)
+        {
+          const Glib::RefPtr<Gst::Object> source = message->get_source();
+          const Glib::ustring source_name = source ? source->get_name() : "(no source element)";
+          std::cout << "DEBUG: MessageTag received from element with name=" << source_name << std::endl;
+          Gst::TagList tag_list = message_tag->parse();
+          tag_list.foreach(
+            sigc::bind(
+              sigc::ptr_fun(&on_taglist_foreach), 
+              tag_list) );
+        }
+
         break;
       }
     default:

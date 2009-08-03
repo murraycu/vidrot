@@ -1,3 +1,12 @@
+2009-08-04  Murray Cumming  <murrayc@murrayc.com>
+
+	Handle MessageTag messages.
+
+	* src/main_window.cc: on_bus_message(): Handle MessageTag messages, 
+	outputting the tags as debug output for now, to show how we might 
+	get information about the source file, to use the same encoding for the 
+	output file. Needs latest gstreamermm from git master.
+
 2009-08-02  Murray Cumming  <murrayc@murrayc.com>
 
 	Warn about some missing gstreamer elements.
