@@ -22,7 +22,7 @@ AM_GLIB_GNU_GETTEXT
 # Also, gst-plugins-bad must have been built with libmjpegtools-dev (on
 # Debian/Ubuntu) available.
 
-PKG_CHECK_MODULES([VIDROT], [gtkmm-2.4 >= 2.12 gstreamermm-0.10 >= 0.10.2 gstreamer-pbutils-0.10])
+PKG_CHECK_MODULES([VIDROT], [gtkmm-2.4 >= 2.22 gstreamermm-0.10 >= 0.10.2 gstreamer-pbutils-0.10])
 AC_SUBST([VIDROT_CFLAGS])
 AC_SUBST([VIDROT_LIBS])
 

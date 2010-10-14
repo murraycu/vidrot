@@ -25,12 +25,12 @@ VidRotPreview::VidRotPreview() :
   m_video_width(0),
   m_video_height(0)
 {
-  set_flags(Gtk::NO_WINDOW);
+  set_has_window(false);
 
 #ifdef GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
-  signal_realize().connect( 
+  signal_realize().connect(
     sigc::mem_fun(*this, &VidRotPreview::on_realize) );
-  signal_unrealize().connect( 
+  signal_unrealize().connect(
     sigc::mem_fun(*this, &VidRotPreview::on_unrealize) );
 #endif //GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
 }
@@ -86,7 +86,7 @@ void VidRotPreview::on_realize()
 
   if(m_gdkwindow)
     return;
-  
+
   GdkWindowAttr attributes;
   memset(&attributes, 0, sizeof(attributes));
 
@@ -101,7 +101,7 @@ void VidRotPreview::on_realize()
   attributes.wclass = GDK_INPUT_OUTPUT;
 
   m_gdkwindow = Gdk::Window::create(get_window(), &attributes, GDK_WA_X | GDK_WA_Y);
-  unset_flags(Gtk::NO_WINDOW);
+  set_has_window();
   set_window(m_gdkwindow);
   m_gdkwindow->set_user_data(gobj());
 }

@@ -1,43 +1,51 @@
+2010-10-14  Murray Cumming  <murrayc@murrayc.com>
+
+	Use only non-deprecated gtkmm API.
+
+	* configure.ac: Require gtkmm 2.22.
+	* src/vidrot_preview.cc: Use set_has_window() instead of set_flags() and
+  unset_flags(). We can ifdef around this later if we want.
+
 2009-08-04  Murray Cumming  <murrayc@murrayc.com>
 
 	Handle MessageTag messages.
 
-	* src/main_window.cc: on_bus_message(): Handle MessageTag messages, 
-	outputting the tags as debug output for now, to show how we might 
-	get information about the source file, to use the same encoding for the 
+	* src/main_window.cc: on_bus_message(): Handle MessageTag messages,
+	outputting the tags as debug output for now, to show how we might
+	get information about the source file, to use the same encoding for the
 	output file. Needs latest gstreamermm from git master.
 
 2009-08-02  Murray Cumming  <murrayc@murrayc.com>
 
 	Warn about some missing gstreamer elements.
 
-	* src/main_window.[h|cc]: create_elements(): Return a bool and a list 
-	of missing gstreamer elements. constructor(): Show an error dialog 
-	if element cannot be created, saying that the installation is incomplete. 
-	We should not hard-code element names anyway, but this will help while 
+	* src/main_window.[h|cc]: create_elements(): Return a bool and a list
+	of missing gstreamer elements. constructor(): Show an error dialog
+	if element cannot be created, saying that the installation is incomplete.
+	We should not hard-code element names anyway, but this will help while
 	we do.
 
 2009-07-31  Murray Cumming  <murrayc@murrayc.com>
 
 	Show the file-is-ready dialog again.
-	
-	* src/main_window.cc: offer_finished_file(): Uncomment the code to show 
-	the dialog so the user knows what happened and can view the result. Added TODO 
+
+	* src/main_window.cc: offer_finished_file(): Uncomment the code to show
+	the dialog so the user knows what happened and can view the result. Added TODO
 	saying what needs to be done to make this nicer.
-	* debian/control: Add a dependency on gvfs. I know of no way to do this in 
+	* debian/control: Add a dependency on gvfs. I know of no way to do this in
 	configure.ac.
 
 2009-07-30  Murray Cumming  <murrayc@murrayc.com>
 
-	* src/main_window.cc: link_elements(): Use the new Bin::add_ghost_pad() 
+	* src/main_window.cc: link_elements(): Use the new Bin::add_ghost_pad()
 	method to simplify the code.
 
 2009-07-30  Murray Cumming  <murrayc@murrayc.com>
 
 	More debug output for warnings.
 
-	* src/main_window.cc: on_bus_message(): MessageWarning handling: 
-	Use Message::get_source() and Object::get_name() to say what element 
+	* src/main_window.cc: on_bus_message(): MessageWarning handling:
+	Use Message::get_source() and Object::get_name() to say what element
 	has a problem in the debug output.
 
 2009-07-30  Murray Cumming  <murrayc@murrayc.com>
@@ -46,42 +54,42 @@
 
 2009-07-30  Murray Cumming  <murrayc@murrayc.com>
 
-	* src/main_window.cc: on_bus_message(): MessageWarning handling: 
-	Add more debug output, which suggests that we are trying to provide an 
-	element with a stream type that it cannot support, so this might not 
+	* src/main_window.cc: on_bus_message(): MessageWarning handling:
+	Add more debug output, which suggests that we are trying to provide an
+	element with a stream type that it cannot support, so this might not
 	be an issue of a missing plugin.
 
 2009-07-29  Murray Cumming  <murrayc@murrayc.com>
 
 	Fix providing of the file in the command line options.
 
-	* src/main_window.[h|cc]: Added respond_to_file_selection(uri), used by 
-	on_file_selected() and by set_file_uri(). This allows us to explicitly 
-	provide the URI because the GtkFileChooserButton's get_uri() does not 
+	* src/main_window.[h|cc]: Added respond_to_file_selection(uri), used by
+	on_file_selected() and by set_file_uri(). This allows us to explicitly
+	provide the URI because the GtkFileChooserButton's get_uri() does not
 	work until the widget is realized (TODO: File GTK+ bug.).
-	update_widget_sensitivity(): Added bool have_uri parameter for the same 
+	update_widget_sensitivity(): Added bool have_uri parameter for the same
 	reason.
 
 2009-07-29  Murray Cumming  <murrayc@murrayc.com>
 
 	Unbreak the GtkFileChooserButton some more.
 
-	* src/main_window.cc: Use g_signal_connect() instead of (stupidly) 
+	* src/main_window.cc: Use g_signal_connect() instead of (stupidly)
 	g_object_set to connect the file-set signal.
 
 2009-07-27  Murray Cumming  <murrayc@murrayc.com>
 
 	Unbreak the GtkFileChooserButton. Sorry.
-	
-	* src/main_window.[h|cc]: Use the GtkFileChooserButton file-set signal via 
-	the C API because it was not wrapped in the corresponding gtkmm (2.16) 
+
+	* src/main_window.[h|cc]: Use the GtkFileChooserButton file-set signal via
+	the C API because it was not wrapped in the corresponding gtkmm (2.16)
 	version in Maemo.
 
 2009-07-27  Murray Cumming  <murrayc@murrayc.com>
 
 	Better stdcerr messages about missing elements.
-	
-	* src/main_window.cc: Add a create_element() helper function that gives a 
+
+	* src/main_window.cc: Add a create_element() helper function that gives a
 	slightly more informative error message when a plugin is missing.
 	Add a comment explaining that the element names are just for debugging.
 
@@ -90,13 +98,13 @@
 	Fix the build on maemo.
 
 	* Makefile.am:
-	* configure.ac: Move the deprecated symbols disabling MY_CFLAGS into 
-	the dkwarn.m4 --enable-warnings option so it is available but not the 
-	default. Making it the default just makes it unnecessarily hard to 
+	* configure.ac: Move the deprecated symbols disabling MY_CFLAGS into
+	the dkwarn.m4 --enable-warnings option so it is available but not the
+	default. Making it the default just makes it unnecessarily hard to
 	build from the tarball with new versions of libraries.
 
 	* src/main_window.cc:
-	* src/vidrot_preview.cc: Added ifdefs to hack around the build with 
+	* src/vidrot_preview.cc: Added ifdefs to hack around the build with
 	the mameomm version of gktmm.
 
 2009-07-24  Murray Cumming  <murrayc@murrayc.com>
@@ -189,7 +197,7 @@
 
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
-	* Makefile.am: Mention the .desktop file in DISTCLEANFILES to avoid 
+	* Makefile.am: Mention the .desktop file in DISTCLEANFILES to avoid
 	a distcheck error.
 	* po/POTFILES.skip: Added this, to avoid a distcheck error.
 
@@ -197,42 +205,42 @@
 
 	* configure.ac
 	* Makefile.am:
-	* vidrot.desktop.in.in: Install a .desktop file so vidrot shows up 
-	in the main desktop menu. I stole the MIME types list from totem, 
-	removing the audio MIME types, though there are probably still some 
+	* vidrot.desktop.in.in: Install a .desktop file so vidrot shows up
+	in the main desktop menu. I stole the MIME types list from totem,
+	removing the audio MIME types, though there are probably still some
 	inappropriate ones there.
 
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
-	* src/main_window.[h|cc]: Added offer_finished_file(), which asks the 
+	* src/main_window.[h|cc]: Added offer_finished_file(), which asks the
 	user and then calls gtk_show_uri() to open it, for instance, in totem.
 	on_bus_message(): Call offer_finished_file() at EOS.
-	
+
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
-	* src/main_window.[h|cc]: setup_widgets(): Added stop button, and 
+	* src/main_window.[h|cc]: setup_widgets(): Added stop button, and
 	handled it.
-	Added update_widget_sensitivity(processing) and moved all 
+	Added update_widget_sensitivity(processing) and moved all
 	set_sensitivity() calls there to simplify the code.
 
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
-	* src/main_window.cc: on_bus_message(): g_free() the result from 
+	* src/main_window.cc: on_bus_message(): g_free() the result from
 	gst_missing_plugin_message_get_description().
 
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
-	* src/main_window.cc: on_file_selected(): Silently ignore an empty 
+	* src/main_window.cc: on_file_selected(): Silently ignore an empty
 	URI.
 
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
-	* src/main.cc: Use a Glib::OptionContext to offer and parse --version 
-	and --file command-line options, also accepting the filepath with no 
+	* src/main.cc: Use a Glib::OptionContext to offer and parse --version
+	and --file command-line options, also accepting the filepath with no
 	-- option name.
-	* src/main_window.[h|cc]: Added set_file_uri(), for use by main(), 
-	though FileChooser.get_uri() does not return what I set, at least on 
-	my system. 
+	* src/main_window.[h|cc]: Added set_file_uri(), for use by main(),
+	though FileChooser.get_uri() does not return what I set, at least on
+	my system.
 
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
@@ -244,14 +252,14 @@
 	* configure.ac: Depend on gstreamer-pbutils-0.10 (from
 	gst-plugins-base).
 	* src/vidrot.cc: main(): Call gst_pb_utils_init().
-	* src/main_window.cc: on_bus_message(): Try to deal with the message as 
-	a missing pluging message, to give the user a meaningful warning and 
-	offer installation of the plugin. This does not work in jhbuild but 
+	* src/main_window.cc: on_bus_message(): Try to deal with the message as
+	a missing pluging message, to give the user a meaningful warning and
+	offer installation of the plugin. This does not work in jhbuild but
 	maybe it would work in a normal environment. We will see.
 
 2009-06-26  Murray Cumming  <murrayc@murrayc.com>
 
-	* src/main_window.cc: Constructor: Add labels to make the UI clearer, 
+	* src/main_window.cc: Constructor: Add labels to make the UI clearer,
 	and correct the button order.
 
 2009-05-12  David King  <davidk@openismus.com>
