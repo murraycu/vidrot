@@ -50,6 +50,8 @@ class MainWindow : public Gtk::Window
     void respond_to_file_selection(const Glib::ustring& uri);
     void update_widget_sensitivity(bool processing, bool have_uri);
     void offer_finished_file(const Glib::ustring& file_uri);
+    void show_errors();
+
 
     // Signal handlers.
     static void on_c_signal_file_selected(GtkFileChooserButton* button, void* user_data);
@@ -62,6 +64,7 @@ class MainWindow : public Gtk::Window
     void on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad);
     void on_no_more_pads();
     bool on_convert_timeout();
+    bool on_idle_show_errors();
 
     // Widgets.
     Gtk::VBox m_vbox;
@@ -96,6 +99,9 @@ class MainWindow : public Gtk::Window
     // Other internal state.
     sigc::connection m_timeout_connection;
     Glib::Timer time_remaining;
+
+    typedef std::list<Glib::ustring> type_list_strings;
+    type_list_strings m_list_missing_element_error_messages;
 };
 
 #endif /* _MAINWINDOW_H */

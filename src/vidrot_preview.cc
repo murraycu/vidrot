@@ -30,8 +30,6 @@ VidRotPreview::VidRotPreview() :
   m_video_width(0),
   m_video_height(0)
 {
-  std::cout << "major=" << GTKMM_MAJOR_VERSION << ", minor=" << GTKMM_MINOR_VERSION << ", micro=" << GTKMM_MICRO_VERSION << std::endl;
-
 #ifdef VIDROT_GTKMM_NEW_HAS_WINDOW_API
   set_has_window(false);
 #else

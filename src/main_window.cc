@@ -55,7 +55,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gst::Pipeline>& pipeline) :
      Gtk::MessageDialog dialog(*this, _("Incomplete Installation"),
        false, Gtk::MESSAGE_ERROR);
      const Glib::ustring message = Glib::ustring::compose(
-       _("Your vidrot installation is incomplete. Please contact your system administrator or distribution.\n\nThese gstreamer elements could not be created: %1"), 
+       _("Your vidrot installation is incomplete. Please contact your system administrator or distribution.\n\nThese gstreamer elements could not be created: %1"),
         missing_elements);
      dialog.set_secondary_text(message);
      dialog.run();
@@ -89,9 +89,9 @@ static Glib::RefPtr<Gst::Element> create_element(const gchar* factory_name, cons
     missing_elements += factory_name;
 
     std::cerr << "vidrot: Gst::ElementFactory::create_element(\"" << factory_name << "\") failed." << std::endl
-      << "  This can probably be corrected by installing a particular gstreamer plugin library." << std::endl; 
+      << "  This can probably be corrected by installing a particular gstreamer plugin library." << std::endl;
   }
-  
+
   return result;
 }
 
@@ -99,7 +99,7 @@ static Glib::RefPtr<Gst::Element> create_element(const gchar* factory_name, cons
 bool MainWindow::create_elements(Glib::ustring& missing_elements)
 {
   //Initialize output parameter:
-  missing_elements =  Glib::ustring();
+  missing_elements = Glib::ustring();
 
   // Attach watcher to message bus.
   Glib::RefPtr<Gst::Bus> bus = m_pipeline->get_bus();
@@ -107,7 +107,7 @@ bool MainWindow::create_elements(Glib::ustring& missing_elements)
     sigc::mem_fun(*this, &MainWindow::on_bus_message));
 
   // Create Bins for audio and video filtering, and add it to the pipeline.
-  // A bin is a collection of linked elements that can then be dealt 
+  // A bin is a collection of linked elements that can then be dealt
   // with as if it is an element.
   m_bin_video = Gst::Bin::create("video-bin");
   g_assert(m_bin_video);
@@ -121,69 +121,69 @@ bool MainWindow::create_elements(Glib::ustring& missing_elements)
   // and is recommended for multiplexing.
   // See http://gstreamer.freedesktop.org/data/doc/gstreamer/head/manual/html/chapter-threads.html
   m_queue_video = Gst::Queue::create("video-queue");
-  g_assert(m_queue_video);  
+  g_assert(m_queue_video);
   m_bin_video->add(m_queue_video);
-  
+
   m_queue_audio = Gst::Queue::create("audio-queue");
   g_assert(m_queue_audio);
   m_bin_audio->add(m_queue_audio);
 
   // Create elements using ElementFactory:
   //
-  // Note that the element names here (the second parameter), are just to help 
-  // with debugging - they appear in the debug output when setting the 
+  // Note that the element names here (the second parameter), are just to help
+  // with debugging - they appear in the debug output when setting the
   // environment variable. For instance, GST_DEBUG=3.
 
-  // uridecodebin decodes data from a URI into raw media, 
+  // uridecodebin decodes data from a URI into raw media,
   // automatically using appropriate plugin elements if they exist.
   // If this can't handle our URI then a plugin may be missing.
-  m_element_source = create_element("uridecodebin", "uri-source", 
+  m_element_source = create_element("uridecodebin", "uri-source",
     missing_elements);
   if(m_element_source)
     m_pipeline->add(m_element_source);
 
   // ffmpegcolorspace converts video from one colorspace to another.
-  m_element_colorspace = create_element("ffmpegcolorspace", "vid-colorspace", 
+  m_element_colorspace = create_element("ffmpegcolorspace", "vid-colorspace",
     missing_elements);
   if(m_element_colorspace)
     m_bin_video->add(m_element_colorspace);
 
   // audioconvert converts audio to different formats.
-  m_element_audconvert = create_element("audioconvert", "aud-convert", 
+  m_element_audconvert = create_element("audioconvert", "aud-convert",
     missing_elements);
   if(m_element_audconvert)
     m_bin_audio->add(m_element_audconvert);
 
-  // TODO: The following suggests that we always _encode_ as MP3 + MPEG, 
-  // regardless of the input format. But we should encode in the same format, 
+  // TODO: The following suggests that we always _encode_ as MP3 + MPEG,
+  // regardless of the input format. But we should encode in the same format,
   // with the same settings. murrayc.
 
   // lame is an MP3 encoder.
-  m_element_audcomp = create_element("lame", "audcomp-element", 
+  m_element_audcomp = create_element("lame", "audcomp-element",
     missing_elements);
   if(m_element_audcomp)
     m_bin_audio->add(m_element_audcomp);
 
   // videoflip flips and rotates video.
-  m_element_filter = create_element("videoflip", "filter-element", 
+  m_element_filter = create_element("videoflip", "filter-element",
     missing_elements);
   if(m_element_filter)
     m_bin_video->add(m_element_filter);
 
   // videorate adjusts the framerate of video.
-  m_element_vidrate = create_element("videorate", "vidrate", 
+  m_element_vidrate = create_element("videorate", "vidrate",
     missing_elements);
   if(m_element_vidrate)
     m_bin_video->add(m_element_vidrate);
 
   // mpeg2enc encodes MPEG-1/2 video.
-  m_element_vidcomp = create_element("mpeg2enc", "vidcomp-element", 
+  m_element_vidcomp = create_element("mpeg2enc", "vidcomp-element",
     missing_elements);
   if(m_element_vidcomp)
     m_bin_video->add(m_element_vidcomp);
 
   // avimux muxes audio and video into an avi stream.
-  m_element_mux = create_element("avimux", "mux-element", 
+  m_element_mux = create_element("avimux", "mux-element",
     missing_elements);
   if(m_element_mux)
     m_pipeline->add(m_element_mux);
@@ -221,9 +221,9 @@ void MainWindow::link_elements()
     ->link(m_queue_audio);
 
   // Ghost pad setup for audio and video bins.
-  // This provides pads for the bins based on the pads for the start and end 
+  // This provides pads for the bins based on the pads for the start and end
   // child elements. The ghost pad names (the last parameter) are just for debugging output.
-  // The bins will then be linked (for instance, m_bin_video->link()) based on 
+  // The bins will then be linked (for instance, m_bin_video->link()) based on
   // the capabilities of these pads.
   // TODO: Why can't Bin just do this automatically for the first and last elements?
   m_bin_audio->add_ghost_pad(m_element_audconvert, "sink", "audsink");
@@ -262,7 +262,7 @@ void MainWindow::setup_widgets()
   //   sigc::mem_fun(*this, &MainWindow::on_file_selected));
   g_signal_connect(m_button_filechooser.gobj(), "file-set",
     (GCallback)&MainWindow::on_c_signal_file_selected, this /* user_data */);
-    
+
   m_button_convert.signal_clicked().connect(
     sigc::mem_fun(*this, &MainWindow::on_button_convert));
   m_button_stop.signal_clicked().connect(
@@ -323,7 +323,7 @@ void MainWindow::update_widget_sensitivity(bool processing, bool have_uri)
 
 void MainWindow::on_c_signal_file_selected(GtkFileChooserButton* /* button */, void* user_data)
 {
-  // This C signal handler is used just because the signal was not wrapped yet in the 
+  // This C signal handler is used just because the signal was not wrapped yet in the
   // Maemo Fremantle gtkmm version (2.16):
   MainWindow* self = (MainWindow*)user_data;
   self->on_file_selected();
@@ -375,9 +375,9 @@ void MainWindow::on_button_quit()
 
 static void on_taglist_foreach(const Glib::ustring& tag, const Gst::TagList& tag_list)
 {
-  //TODO: This is just debug output. 
+  //TODO: This is just debug output.
   //TODO: We should get and remember some common-tags such as encoding and bitrate.
-  std::cout << "  DEBUG: Tag: " << tag << std::endl 
+  std::cout << "  DEBUG: Tag: " << tag << std::endl
     << "    nick: " << tag_list.get_nick(tag) << std::endl
     << "    description: " << tag_list.get_description(tag) << std::endl;
 
@@ -461,6 +461,7 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
       }
     case Gst::MESSAGE_STATE_CHANGED:
       {
+        //std::cout << "MessageStateChanged received" << std::endl;
         /* Set UI to be insensitive during conversion, apart from the Stop
            button. */
         Glib::RefPtr<Gst::MessageStateChanged> message_statechange =
@@ -535,11 +536,19 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
              If not, we can do it in an idle callback. */
           gchar* description = gst_missing_plugin_message_get_description(
             message_element->gobj());
-          Gtk::MessageDialog dialog(*this, _("Missing GStreamer Plugin"),
-            false, Gtk::MESSAGE_ERROR);
-          dialog.set_secondary_text(description);
+          std::cerr << "MessageElement received with missing-plugin description=" << description << std::endl;
+          if(description)
+          {
+            m_list_missing_element_error_messages.push_back(description);
+
+            //Make sure that this will be shown to the user later,
+            //even if our timeout handler doesn't run because the stream has
+            //not yet started:
+            Glib::signal_idle().connect(
+              sigc::mem_fun(*this, &MainWindow::on_idle_show_errors));
+          }
+
           g_free(description);
-          dialog.run();
           return false;
         }
 
@@ -557,8 +566,25 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
           Gst::TagList tag_list = message_tag->parse();
           tag_list.foreach(
             sigc::bind(
-              sigc::ptr_fun(&on_taglist_foreach), 
+              sigc::ptr_fun(&on_taglist_foreach),
               tag_list) );
+        }
+
+        break;
+      }
+    case Gst::MESSAGE_STREAM_STATUS:
+      {
+        // This just tells us about streams starting/entering/stopping, etc:
+        // They are not errors or warnings.
+        Glib::RefPtr<Gst::MessageStreamStatus> message_stream_status =
+           Glib::RefPtr<Gst::MessageStreamStatus>::cast_dynamic(message);
+        if(message_stream_status)
+        {
+          const Glib::RefPtr<Gst::Object> source = message->get_source();
+          const Glib::ustring source_name = source ? source->get_name() : "(no source element)";
+          const Gst::StreamStatusType type = message_stream_status->parse();
+          std::cout << "DEBUG: MesssageStreamStatus of type=" << type
+            << " received from object with name=" << source_name << std::endl;
         }
 
         break;
@@ -638,9 +664,36 @@ void MainWindow::on_no_more_pads()
   m_element_mux->set_state(Gst::STATE_PAUSED);
 }
 
+void MainWindow::show_errors()
+{
+  //Tell the user about any missing-plugin errors that have happened:
+  while(!m_list_missing_element_error_messages.empty())
+  {
+    const Glib::ustring& description = m_list_missing_element_error_messages.back();
+
+    if(!description.empty())
+    {
+      Gtk::MessageDialog dialog(*this, _("Missing GStreamer Plugin"),
+        false, Gtk::MESSAGE_ERROR);
+      dialog.set_secondary_text(description);
+      dialog.run();
+    }
+
+    m_list_missing_element_error_messages.pop_back();
+  }
+}
+
+//Show the errors without blocking when we actually get them.
+bool MainWindow::on_idle_show_errors()
+{
+  show_errors();
+  return false; //Stop, so this is only called once.
+}
+
 // Update progress bar every 200 ms.
 bool MainWindow::on_convert_timeout()
 {
+  std::cout << G_STRFUNC << ": DEBUG" << std::endl;
   Gst::Format format = Gst::FORMAT_TIME;
   gint64 position = 0;
   gint64 duration = 0;
@@ -652,12 +705,14 @@ bool MainWindow::on_convert_timeout()
     m_progress_convert.set_fraction(fraction);
 
     const int seconds_remaining = time_remaining.elapsed() / fraction;
-    const Glib::ustring conversion_status = 
-     Glib::ustring::compose(_("Time remaining: %1:%2"), 
-       seconds_remaining / 60, 
+    const Glib::ustring conversion_status =
+     Glib::ustring::compose(_("Time remaining: %1:%2"),
+       seconds_remaining / 60,
        seconds_remaining % 60);
     m_progress_convert.set_text(conversion_status);
   }
+
+  show_errors();
 
   return true; // Keep calling this timeout handler.
 }
@@ -669,22 +724,22 @@ void MainWindow::set_file_uri(const Glib::ustring& file_uri)
   m_button_filechooser.select_uri(file_uri);
   //std::cout << "debug: MainWindow::set_file_uri(): file_uri=" << file_uri << ", get URI=" << m_button_filechooser.get_uri() << std::endl;
 
-  // Note that we don't just call on_file_selected(), 
-  // because that apparently fails to get the selected URI from the 
+  // Note that we don't just call on_file_selected(),
+  // because that apparently fails to get the selected URI from the
   // GtkFileChooserButton before the GtkFileChooserButton is realized. TODO: File a GTK+ bug with a test case.
   respond_to_file_selection(file_uri);
 }
 
 // TODO: Remove this dialog when
 // 1. We show a preview of the transformed file, to show the user what has been done.
-// 2. We change the existing file instead of creating a new file, when we can 
+// 2. We change the existing file instead of creating a new file, when we can
 // write the file in the original format instead of an arbitrary format.
 void MainWindow::offer_finished_file(const Glib::ustring& file_uri)
 {
   std::cout << "debug: MainWindow::offer_finished_file(): file_uri=" <<
     file_uri << std::endl;
 
-  Gtk::MessageDialog dialog(*this, _("Processing Complete"), false, 
+  Gtk::MessageDialog dialog(*this, _("Processing Complete"), false,
     Gtk::MESSAGE_INFO, Gtk::BUTTONS_NONE);
   dialog.set_secondary_text(_("The rotated video file is now ready."));
 
@@ -700,11 +755,11 @@ void MainWindow::offer_finished_file(const Glib::ustring& file_uri)
   }
 
   // Note that this requires this application to explicitly depend on gvfs,
-  // (which has no pkg-config file, so it's an issue for package files such as 
-  // debian/control), 
-  // because GTK+ chooses not to explicitly depend on gvfs because of its D-Bus 
+  // (which has no pkg-config file, so it's an issue for package files such as
+  // debian/control),
+  // because GTK+ chooses not to explicitly depend on gvfs because of its D-Bus
   // dependency.
-  // It's theoretically possible for this to fail on a system that has a 
+  // It's theoretically possible for this to fail on a system that has a
   // strangely-built gvfs.
   GError* gerror = 0;
   if(!gtk_show_uri(0 /* screen */, file_uri.c_str(), GDK_CURRENT_TIME, &gerror))
@@ -716,7 +771,7 @@ void MainWindow::offer_finished_file(const Glib::ustring& file_uri)
     std::cerr << "Error while calling gtk_show_uri(): " << message << std::endl;
 
     // Warn the user.
-    Gtk::MessageDialog dialog(*this, _("Error Opening File"), false, 
+    Gtk::MessageDialog dialog(*this, _("Error Opening File"), false,
       Gtk::MESSAGE_ERROR);
     dialog.set_secondary_text(
       _("An error occurred while trying to open the file. This may be a problem with the configuration of your system."));

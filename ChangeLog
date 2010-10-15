@@ -1,5 +1,14 @@
 2010-10-15  Murray Cumming  <murrayc@murrayc.com>
 
+	Show error dialogs in idle/timeout instead of during message parsing.
+
+	* src/main_window.[h|cc]: on_bus_message(): MessageElement: Do not
+  show a Gtk::MessageDialog here. Instead save it in a list and show it during
+  idle or timeout. This is because be probably should not do blocking or UI
+  work in the message parsing callback.
+
+2010-10-15  Murray Cumming  <murrayc@murrayc.com>
+
 	Build with older gtkmm too.
 
 	* configure.ac: Depend on an older gtkmm again.
