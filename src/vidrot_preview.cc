@@ -21,7 +21,7 @@
 #include "vidrot_preview.h"
 #include <iostream>
 
-#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 22)
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 18)
 #define VIDROT_GTKMM_NEW_HAS_WINDOW_API 1
 #endif
 
