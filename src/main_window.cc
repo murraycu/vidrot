@@ -602,6 +602,21 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
 
         break;
       }
+    case Gst::MESSAGE_ASYNC_DONE:
+      {
+        // These are not errors or warnings.
+        Glib::RefPtr<Gst::MessageAsyncDone> message_async_done =
+           Glib::RefPtr<Gst::MessageAsyncDone>::cast_dynamic(message);
+        if(message_async_done)
+        {
+          const Glib::RefPtr<Gst::Object> source = message->get_source();
+          const Glib::ustring source_name = source ? source->get_name() : "(no source element)";
+          std::cout << "DEBUG: MessageAsyncDone received from object with name=" 
+            << source_name << std::endl;
+        }
+
+        break;
+      }
     default:
       // For instance, Gst::MESSAGE_TAG, which is not an error.
       std::cout << _("Unhandled message on bus: ") <<
