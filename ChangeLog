@@ -1,5 +1,12 @@
 2010-10-15  Murray Cumming  <murrayc@murrayc.com>
 
+	One less error dialog when there are missing plugins.
+
+	* src/main_window.cc: show_errors(): Do not show the error dialog if we 
+	use the runtime installation, because that shows enough feedback.
+
+2010-10-15  Murray Cumming  <murrayc@murrayc.com>
+
 	Correct the gtkmm version check for the ifdef.
 
 	* src/vidrot_preview.cc: set_flags()/unset_flags() was actually deprecated

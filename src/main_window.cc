@@ -686,29 +686,37 @@ void MainWindow::show_errors()
     const Glib::ustring& description = item.first;
     const Glib::ustring& details  = item.second;
 
-    if(!description.empty())
+    bool handled = false;
+    if(!details.empty())
+    {
+      //Attempt to install appropriate plugins at runtime:
+      if(gst_install_plugins_supported())
+      {
+        GstInstallPluginsContext* context = gst_install_plugins_context_new();
+        gst_install_plugins_context_set_xid(context, GDK_WINDOW_XWINDOW(get_window()->gobj()));
+
+        //TODO: Use gst_install_plugins_async() instead.
+        const char* details_array[] = {details.c_str(), 0};
+        const GstInstallPluginsReturn result = 
+          gst_install_plugins_sync(const_cast<char**>(details_array), context);
+        gst_install_plugins_context_free(context);
+        
+        if(result == GST_INSTALL_PLUGINS_SUCCESS)
+          handled = true;
+      }
+      else
+      {
+        std::cerr << "GstInstallPlugins is not supported." << std::endl;
+      }
+    }
+    
+    if(!handled)
     {
       Gtk::MessageDialog dialog(*this, _("Missing GStreamer Plugin"),
         false, Gtk::MESSAGE_ERROR);
       dialog.set_secondary_text(description);
       dialog.run();
-    }
-
-    //Attempt to install appropriate plugins at runtime:
-    if(gst_install_plugins_supported())
-    {
-      GstInstallPluginsContext* context = gst_install_plugins_context_new();
-      gst_install_plugins_context_set_xid(context, GDK_WINDOW_XWINDOW(get_window()->gobj()));
-
-      //TODO: Use gst_install_plugins_async() instead.
-      const char* details_array[] = {details.c_str(), 0};
-      gst_install_plugins_sync(const_cast<char**>(details_array), context);
-      gst_install_plugins_context_free(context);
-    }
-    else
-    {
-      std::cerr << "GstInstallPlugins is not supported." << std::endl;
-    }
+    }    
 
     m_list_missing_plugins.pop_back();
   }
