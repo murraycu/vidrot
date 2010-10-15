@@ -21,7 +21,7 @@
 
 #include <gtkmm.h>
 
-class VidRotPreview : public Gtk::Widget
+class VidRotPreview : public Gtk::DrawingArea
 {
   public:
     VidRotPreview();
@@ -33,11 +33,7 @@ class VidRotPreview : public Gtk::Widget
   private:
     virtual void on_size_allocate(Gtk::Allocation& allocation);
     virtual void on_size_request(Gtk::Requisition* requisition);
-    virtual void on_realize();
-    virtual void on_unrealize();
     virtual bool on_expose_event(GdkEventExpose* event);
-
-    Glib::RefPtr<Gdk::Window> m_gdkwindow;
 
     unsigned int m_video_width;
     unsigned int m_video_height;

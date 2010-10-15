@@ -21,22 +21,10 @@
 #include "vidrot_preview.h"
 #include <iostream>
 
-#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 18)
-#define VIDROT_GTKMM_NEW_HAS_WINDOW_API 1
-#endif
-
-VidRotPreview::VidRotPreview() :
-  Gtk::Widget(),
-  m_video_width(0),
+VidRotPreview::VidRotPreview()
+: m_video_width(0),
   m_video_height(0)
 {
-#ifdef VIDROT_GTKMM_NEW_HAS_WINDOW_API
-  set_has_window(false);
-#else
-  set_flags(Gtk::NO_WINDOW);
-#endif
-
-
 #ifdef GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
   signal_realize().connect(
     sigc::mem_fun(*this, &VidRotPreview::on_realize) );
@@ -71,9 +59,10 @@ void VidRotPreview::on_size_allocate(Gtk::Allocation& allocation)
 {
   set_allocation(allocation);
 
-  if(m_gdkwindow)
+  Glib::RefPtr<Gdk::Window> window = get_window();
+  if(window)
   {
-    m_gdkwindow->move_resize(allocation.get_x(), allocation.get_y(), allocation.get_width(), allocation.get_height());
+    window->move_resize(allocation.get_x(), allocation.get_y(), allocation.get_width(), allocation.get_height());
   }
 }
 
@@ -88,53 +77,10 @@ void VidRotPreview::on_size_request(Gtk::Requisition* requisition)
   requisition->width = -1;
 }
 
-void VidRotPreview::on_realize()
-{
-#ifdef GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
-  Gtk::Widget::on_realize();
-#endif //GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
-
-  if(m_gdkwindow)
-    return;
-
-  GdkWindowAttr attributes;
-  memset(&attributes, 0, sizeof(attributes));
-
-  const Gtk::Allocation allocation = get_allocation();
-
-  attributes.x = allocation.get_x();
-  attributes.y = allocation.get_y();
-  attributes.width = allocation.get_width();
-  attributes.height = allocation.get_height();
-  attributes.event_mask = get_events() | Gdk::EXPOSURE_MASK;
-  attributes.window_type = GDK_WINDOW_CHILD;
-  attributes.wclass = GDK_INPUT_OUTPUT;
-
-  m_gdkwindow = Gdk::Window::create(get_window(), &attributes, GDK_WA_X | GDK_WA_Y);
-
-#ifdef VIDROT_GTKMM_NEW_HAS_WINDOW_API
-  set_has_window();
-#else
-  unset_flags(Gtk::NO_WINDOW);
-#endif
-
-  set_window(m_gdkwindow);
-  m_gdkwindow->set_user_data(gobj());
-}
-
-void VidRotPreview::on_unrealize()
-{
-  if(m_gdkwindow)
-    m_gdkwindow->clear();
-
-#ifdef GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
-  Gtk::Widget::on_unrealize();
-#endif //GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
-}
-
 bool VidRotPreview::on_expose_event(GdkEventExpose* /* event */)
 {
-  if(!m_gdkwindow)
+  Glib::RefPtr<Gdk::Window> window = get_window();
+  if(!window)
     return true;
     
   if(get_aspect_ratio() <= 0.0f)
@@ -143,7 +89,7 @@ bool VidRotPreview::on_expose_event(GdkEventExpose* /* event */)
   if(!(m_video_width > 0 && m_video_height > 0))
     return true;
         
-  Cairo::RefPtr<Cairo::Context> context = m_gdkwindow->create_cairo_context();
+  Cairo::RefPtr<Cairo::Context> context = window->create_cairo_context();
   context->paint();
 
   const Gtk::Allocation allocation = get_allocation();
@@ -164,8 +110,8 @@ bool VidRotPreview::on_expose_event(GdkEventExpose* /* event */)
   //unsigned int y = (allocation.get_height() - draw_height) / 2;
 
   // TODO: Layout preview corectly.
-  //m_gdkwindow->move_resize(x, y, draw_width, draw_height);
-  m_gdkwindow->move_resize(allocation.get_x(), allocation.get_y(), draw_width, draw_height);
+  //window->move_resize(x, y, draw_width, draw_height);
+  window->move_resize(allocation.get_x(), allocation.get_y(), draw_width, draw_height);
 
   return true;
 }

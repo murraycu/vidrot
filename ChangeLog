@@ -1,5 +1,12 @@
 2010-10-15  Murray Cumming  <murrayc@murrayc.com>
 
+	VidRotPreview: Derive from DrawingArea.
+
+	* src/vidrot_preview.[h|cc]: Derive from DrawingArea instead of worrying 
+	about has_window.
+
+2010-10-15  Murray Cumming  <murrayc@murrayc.com>
+
 	Handle MessageAsyncDone too, just for debug output.
 
 	* src/main_window.cc: Handle Gst::MESSAGE_ASYNC_DONE.
