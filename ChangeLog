@@ -1,3 +1,13 @@
+2010-10-15  Murray Cumming  <murrayc@murrayc.com>
+
+	Build with older gtkmm too.
+
+	* configure.ac: Depend on an older gtkmm again.
+	* src/vidrot_preview.cc: Use GTKMM_MAJOR_VERSION and GTKMM_MINOR_VERSION
+  with ifdef to use non-deprecated API with both newer and older versions of
+  gtkmm. This is useful because the latest Ubuntu does not have the latest
+  GTK+, and we'd still like to build vidrot there.
+
 2010-10-14  Murray Cumming  <murrayc@murrayc.com>
 
 	Use only non-deprecated gtkmm API.

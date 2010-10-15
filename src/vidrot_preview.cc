@@ -19,13 +19,25 @@
 #include <gdkmm.h>
 #include <cstring>
 #include "vidrot_preview.h"
+#include <iostream>
+
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 22)
+#define VIDROT_GTKMM_NEW_HAS_WINDOW_API 1
+#endif
 
 VidRotPreview::VidRotPreview() :
   Gtk::Widget(),
   m_video_width(0),
   m_video_height(0)
 {
+  std::cout << "major=" << GTKMM_MAJOR_VERSION << ", minor=" << GTKMM_MINOR_VERSION << ", micro=" << GTKMM_MICRO_VERSION << std::endl;
+
+#ifdef VIDROT_GTKMM_NEW_HAS_WINDOW_API
   set_has_window(false);
+#else
+  set_flags(Gtk::NO_WINDOW);
+#endif
+
 
 #ifdef GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
   signal_realize().connect(
@@ -101,14 +113,21 @@ void VidRotPreview::on_realize()
   attributes.wclass = GDK_INPUT_OUTPUT;
 
   m_gdkwindow = Gdk::Window::create(get_window(), &attributes, GDK_WA_X | GDK_WA_Y);
+
+#ifdef VIDROT_GTKMM_NEW_HAS_WINDOW_API
   set_has_window();
+#else
+  unset_flags(Gtk::NO_WINDOW);
+#endif
+
   set_window(m_gdkwindow);
   m_gdkwindow->set_user_data(gobj());
 }
 
 void VidRotPreview::on_unrealize()
 {
-  m_gdkwindow->clear();
+  if(m_gdkwindow)
+    m_gdkwindow->clear();
 
 #ifdef GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
   Gtk::Widget::on_unrealize();
@@ -138,8 +157,8 @@ bool VidRotPreview::on_expose_event(GdkEventExpose* /* event */)
           ratio = static_cast<float>(allocation.get_width()) / m_video_width;
         }
 
-        unsigned int draw_width = m_video_width * ratio;
-        unsigned int draw_height = m_video_height * ratio;
+        const unsigned int draw_width = m_video_width * ratio;
+        const unsigned int draw_height = m_video_height * ratio;
         //unsigned int x = (allocation.get_width() - draw_width) / 2;
         //unsigned int y = (allocation.get_height() - draw_height) / 2;
 
