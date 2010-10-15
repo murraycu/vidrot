@@ -23,6 +23,9 @@
 // For gst_missing_plugin_message_get_description().
 #include <gst/pbutils/missing-plugins.h>
 
+// For gst_missing_plugin_message_get_installer_detail().
+#include <gst/pbutils/install-plugins.h>
+
 #include <gdk/gdkx.h>
 #include <glibmm/i18n.h>
 #include <iostream>
@@ -534,12 +537,21 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
         {
           /* TODO: Are we allowed to do block or even show UI here?
              If not, we can do it in an idle callback. */
-          gchar* description = gst_missing_plugin_message_get_description(
+          char* pchDescription = gst_missing_plugin_message_get_description(
             message_element->gobj());
-          std::cerr << "MessageElement received with missing-plugin description=" << description << std::endl;
-          if(description)
+          std::cerr << "MessageElement received with missing-plugin description="
+            << pchDescription << std::endl;
+          const Glib::ustring description = pchDescription ? pchDescription : Glib::ustring();
+
+          char* pchDetails = gst_missing_plugin_message_get_installer_detail(
+            message_element->gobj());
+          std::cout << "  DEBUG: detail=" << pchDetails << std::endl;
+          const Glib::ustring details = pchDetails ? pchDetails : Glib::ustring();
+
+          if(!description.empty())
           {
-            m_list_missing_element_error_messages.push_back(description);
+            m_list_missing_plugins.push_front(
+              type_pair_missing_plugin(description, details));
 
             //Make sure that this will be shown to the user later,
             //even if our timeout handler doesn't run because the stream has
@@ -548,7 +560,8 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
               sigc::mem_fun(*this, &MainWindow::on_idle_show_errors));
           }
 
-          g_free(description);
+          g_free(pchDescription);
+          g_free(pchDetails);
           return false;
         }
 
@@ -667,9 +680,11 @@ void MainWindow::on_no_more_pads()
 void MainWindow::show_errors()
 {
   //Tell the user about any missing-plugin errors that have happened:
-  while(!m_list_missing_element_error_messages.empty())
+  while(!m_list_missing_plugins.empty())
   {
-    const Glib::ustring& description = m_list_missing_element_error_messages.back();
+    const type_pair_missing_plugin& item = m_list_missing_plugins.back();
+    const Glib::ustring& description = item.first;
+    const Glib::ustring& details  = item.second;
 
     if(!description.empty())
     {
@@ -679,7 +694,23 @@ void MainWindow::show_errors()
       dialog.run();
     }
 
-    m_list_missing_element_error_messages.pop_back();
+    //Attempt to install appropriate plugins at runtime:
+    if(gst_install_plugins_supported())
+    {
+      GstInstallPluginsContext* context = gst_install_plugins_context_new();
+      gst_install_plugins_context_set_xid(context, GDK_WINDOW_XWINDOW(get_window()->gobj()));
+
+      //TODO: Use gst_install_plugins_async() instead.
+      const char* details_array[] = {details.c_str(), 0};
+      gst_install_plugins_sync(const_cast<char**>(details_array), context);
+      gst_install_plugins_context_free(context);
+    }
+    else
+    {
+      std::cerr << "GstInstallPlugins is not supported." << std::endl;
+    }
+
+    m_list_missing_plugins.pop_back();
   }
 }
 

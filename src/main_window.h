@@ -100,8 +100,11 @@ class MainWindow : public Gtk::Window
     sigc::connection m_timeout_connection;
     Glib::Timer time_remaining;
 
-    typedef std::list<Glib::ustring> type_list_strings;
-    type_list_strings m_list_missing_element_error_messages;
+    //Remember details of missing plugins
+    //so we can respond in an idle or timeout handler.
+    typedef std::pair<Glib::ustring, Glib::ustring> type_pair_missing_plugin;
+    typedef std::list<type_pair_missing_plugin> type_list_missing_plugins;
+    type_list_missing_plugins m_list_missing_plugins;
 };
 
 #endif /* _MAINWINDOW_H */
