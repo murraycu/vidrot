@@ -55,7 +55,7 @@ void VidRotPreview::set_aspect_ratio(unsigned int width, unsigned int height)
   m_video_height = height;
 }
 
-float VidRotPreview::get_aspect_ratio()
+float VidRotPreview::get_aspect_ratio() const
 {
   if(m_video_height > 0)
   {
@@ -134,44 +134,38 @@ void VidRotPreview::on_unrealize()
 
 bool VidRotPreview::on_expose_event(GdkEventExpose* /* event */)
 {
-  if(m_gdkwindow)
+  if(!m_gdkwindow)
+    return true;
+    
+  if(get_aspect_ratio() <= 0.0f)
+    return true;
+
+  if(!(m_video_width > 0 && m_video_height > 0))
+    return true;
+        
+  Cairo::RefPtr<Cairo::Context> context = m_gdkwindow->create_cairo_context();
+  context->paint();
+
+  const Gtk::Allocation allocation = get_allocation();
+  float ratio = 1.0f;
+
+  if(static_cast<float>(allocation.get_width()) / m_video_width > static_cast<float>(allocation.get_height()) / m_video_height)
   {
-    Cairo::RefPtr<Cairo::Context> context = m_gdkwindow->create_cairo_context();
-    context->paint();
-
-    if(get_aspect_ratio() > 0.0f)
-    {
-      const Gtk::Allocation allocation = get_allocation();
-      float ratio = 1.0f;
-
-      if(m_video_width > 0 && m_video_height > 0)
-      {
-        if(static_cast<float>(allocation.get_width()) / m_video_width > static_cast<float>(allocation.get_height()) / m_video_height)
-        {
-          ratio = static_cast<float>(allocation.get_height()) / m_video_height;
-        }
-        else
-        {
-          ratio = static_cast<float>(allocation.get_width()) / m_video_width;
-        }
-
-        const unsigned int draw_width = m_video_width * ratio;
-        const unsigned int draw_height = m_video_height * ratio;
-        //unsigned int x = (allocation.get_width() - draw_width) / 2;
-        //unsigned int y = (allocation.get_height() - draw_height) / 2;
-
-        // TODO: Layout preview corectly.
-        //m_gdkwindow->move_resize(x, y, draw_width, draw_height);
-        m_gdkwindow->move_resize(allocation.get_x(), allocation.get_y(), draw_width, draw_height);
-
-      }
-      else
-      {
-        return true;
-      }
-
-    }
+    ratio = static_cast<float>(allocation.get_height()) / m_video_height;
   }
+  else
+  {
+    ratio = static_cast<float>(allocation.get_width()) / m_video_width;
+  }
+
+  const unsigned int draw_width = m_video_width * ratio;
+  const unsigned int draw_height = m_video_height * ratio;
+  //unsigned int x = (allocation.get_width() - draw_width) / 2;
+  //unsigned int y = (allocation.get_height() - draw_height) / 2;
+
+  // TODO: Layout preview corectly.
+  //m_gdkwindow->move_resize(x, y, draw_width, draw_height);
+  m_gdkwindow->move_resize(allocation.get_x(), allocation.get_y(), draw_width, draw_height);
 
   return true;
 }

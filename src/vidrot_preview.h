@@ -28,7 +28,7 @@ class VidRotPreview : public Gtk::Widget
     virtual ~VidRotPreview();
 
     void set_aspect_ratio(unsigned int width, unsigned int height);
-    float get_aspect_ratio();
+    float get_aspect_ratio() const;
 
   private:
     virtual void on_size_allocate(Gtk::Allocation& allocation);
