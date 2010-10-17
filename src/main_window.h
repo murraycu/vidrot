@@ -61,8 +61,8 @@ class MainWindow : public Gtk::Window
     void on_button_quit();
     bool on_bus_message(const Glib::RefPtr<Gst::Bus>& bus,
       const Glib::RefPtr<Gst::Message>& message);
-    void on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad);
-    void on_no_more_pads();
+    void on_uridecodebin_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad);
+    void on_uridecodebin_no_more_pads();
     bool on_convert_timeout();
     bool on_idle_show_errors();
 

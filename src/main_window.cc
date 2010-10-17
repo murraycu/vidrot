@@ -202,12 +202,12 @@ bool MainWindow::create_elements(Glib::ustring& missing_elements)
 // Link pipeline elements together.
 void MainWindow::link_elements()
 {
-  // Dynamically (later) link uridecodebin to audio and video processing bins.
+  // Dynamically (later) link uridecodebin to the audio and video processing bins.
   // We can't do this now because the uridecodebin pads don't exist yet.
   m_element_source->signal_pad_added().connect(
-    sigc::mem_fun(*this, &MainWindow::on_decode_pad_added));
+    sigc::mem_fun(*this, &MainWindow::on_uridecodebin_pad_added));
   m_element_source->signal_no_more_pads().connect(
-    sigc::mem_fun(*this, &MainWindow::on_no_more_pads));
+    sigc::mem_fun(*this, &MainWindow::on_uridecodebin_no_more_pads));
 
   // Link video elements (in the video bin).
   // We may only link the decoder to the filter after the stream has been identified.
@@ -628,7 +628,7 @@ bool MainWindow::on_bus_message(const Glib::RefPtr<Gst::Bus>& /* bus */,
 }
 
 // TODO: Needs horrible and ugly not-build-with-exceptions hacks.
-void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
+void MainWindow::on_uridecodebin_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
 {
   // Check whether dynamic pad has audio or video caps.
   Glib::RefPtr<const Gst::Caps> new_caps = new_pad->get_caps();
@@ -686,7 +686,7 @@ void MainWindow::on_decode_pad_added(const Glib::RefPtr<Gst::Pad>& new_pad)
 }
 
 // Move elements to PAUSED state as soon as possible.
-void MainWindow::on_no_more_pads()
+void MainWindow::on_uridecodebin_no_more_pads()
 {
   m_element_sink->set_state(Gst::STATE_PAUSED);
   m_element_mux->set_state(Gst::STATE_PAUSED);

@@ -1,3 +1,11 @@
+2010-10-17  Murray Cumming  <murrayc@murrayc.com>
+
+	Rename some signal handlers.
+
+	* src/main_window.[h|cc]: Rename on_decode_pad_added() to 
+	on_uridecodebin_pad_added() and rename on_no_more_pads() to 
+	on_uridecodebin_no_more_pads() to make things clearer.
+
 2010-10-15  Murray Cumming  <murrayc@murrayc.com>
 
 	VidRotPreview: Derive from DrawingArea.
